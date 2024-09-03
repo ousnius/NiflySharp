@@ -1,6 +1,12 @@
-﻿namespace NiflySharp.Blocks
+﻿using NiflySharp.Structs;
+
+namespace NiflySharp.Blocks
 {
-    public partial class NiAVObject : NiObjectNET, INiStreamable
+    public partial class NiAVObject
     {
+        public NiAVObject()
+        {
+            Rotation = new Matrix33();
+        }
     }
 }
