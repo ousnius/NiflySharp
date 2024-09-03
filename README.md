@@ -2,7 +2,7 @@
 C# / .NET NIF library for the Gamebryo/NetImmerse File Format (NetImmerse, Gamebryo, Creation Engine).  
 Created with a clean-room design.
 
-[![.NET](https://github.com/ousnius/NiflySharp/actions/workflows/dotnet.yml/badge.svg)](https://github.com/ousnius/NiflySharp/actions/workflows/dotnet.yml)
+[![.NET](https://github.com/ousnius/NiflySharp/actions/workflows/dotnet.yml/badge.svg)](https://github.com/ousnius/NiflySharp/actions/workflows/dotnet.yml) [![NuGet](https://img.shields.io/nuget/v/Nifly)](https://www.nuget.org/packages/Nifly)
 
 This is a rewrite of the C++ version of [nifly](https://github.com/ousnius/nifly) for C# using source generation based on [nifxml](https://github.com/niftools/nifxml).
 
