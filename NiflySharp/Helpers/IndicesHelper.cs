@@ -30,7 +30,6 @@ namespace NiflySharp.Helpers
         /// Generate triangle indices from strips indices.
         /// Strips with less than 3 points are skipped as they cannot become a triangle.
         /// </summary>
-        /// <typeparam name="IndexType">Index data type (e.g. ushort)</typeparam>
         /// <param name="strips">Strips index data</param>
         /// <returns>Triangle indices list</returns>
         public static List<Triangle> GenerateTrianglesFromStrips(List<List<ushort>> strips)
