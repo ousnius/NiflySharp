@@ -71,10 +71,10 @@ namespace NiflySharp.Blocks
 
             foreach (ref var part in spanPartitions)
             {
-                if ((part._trianglesCopy?.Count ?? 0) > 0)
+                if ((part.TrianglesCopy?.Count ?? 0) > 0)
                     continue;
 
-                if (part._numStrips > 0)
+                if (part.NumStrips > 0)
                     part.ConvertStripsToTriangles();
 
                 if (mappedIndices)
@@ -83,8 +83,8 @@ namespace NiflySharp.Blocks
                 }
                 else
                 {
-                    part._trianglesCopy = part._trianglesCopy.Resize(part._triangles.Count);
-                    part._triangles.CopyTo(CollectionsMarshal.AsSpan(part._trianglesCopy));
+                    part.TrianglesCopy = part.TrianglesCopy.Resize(part.Triangles.Count);
+                    part.Triangles.CopyTo(CollectionsMarshal.AsSpan(part.TrianglesCopy));
                 }
             }
         }
@@ -107,7 +107,7 @@ namespace NiflySharp.Blocks
             // Set triParts for each partition triangle
             for (int partInd = 0; partInd < _partitions.Count; ++partInd)
             {
-                foreach (var pt in _partitions[partInd]._trianglesCopy)
+                foreach (var pt in _partitions[partInd].TrianglesCopy)
                 {
                     var tri = pt;
                     tri.Rotate();
@@ -124,10 +124,10 @@ namespace NiflySharp.Blocks
 
             foreach (ref var part in spanPartitions)
             {
-                if ((part._vertexMap?.Count ?? 0) == 0)
+                if ((part.VertexMap?.Count ?? 0) == 0)
                     part.GenerateVertexMapFromTrueTriangles();
 
-                if ((part._triangles?.Count ?? 0) == 0)
+                if ((part.Triangles?.Count ?? 0) == 0)
                 {
                     if (mappedIndices)
                     {
@@ -135,8 +135,8 @@ namespace NiflySharp.Blocks
                     }
                     else
                     {
-                        part._triangles = part._triangles.Resize(part._trianglesCopy.Count);
-                        part._trianglesCopy.CopyTo(CollectionsMarshal.AsSpan(part._triangles));
+                        part.Triangles = part.Triangles.Resize(part.TrianglesCopy.Count);
+                        part.TrianglesCopy.CopyTo(CollectionsMarshal.AsSpan(part.Triangles));
                     }
                 }
             }
@@ -160,15 +160,15 @@ namespace NiflySharp.Blocks
 
             foreach (ref var p in spanPartitions)
             {
-                p._trianglesCopy?.Clear();
-                p._triangles?.Clear();
-                p._numStrips = 0;
-                p._strips?.Clear();
-                p._stripLengths?.Clear();
-                p._hasFaces = true;
-                p._vertexMap?.Clear();
-                p._vertexWeights?.Clear();
-                p._boneIndices?.Clear();
+                p.TrianglesCopy?.Clear();
+                p.Triangles?.Clear();
+                p.NumStrips = 0;
+                p.Strips?.Clear();
+                p.StripLengths?.Clear();
+                p.HasFaces = true;
+                p.VertexMap?.Clear();
+                p.VertexWeights?.Clear();
+                p.BoneIndices?.Clear();
             }
 
             for (int triInd = 0; triInd < tris.Count; ++triInd)
@@ -176,13 +176,13 @@ namespace NiflySharp.Blocks
                 int partInd = triParts[triInd];
                 if (partInd >= 0 && partInd < _partitions.Count)
                 {
-                    spanPartitions[partInd]._trianglesCopy ??= [];
-                    spanPartitions[partInd]._trianglesCopy.Add(tris[triInd]);
+                    spanPartitions[partInd].TrianglesCopy ??= [];
+                    spanPartitions[partInd].TrianglesCopy.Add(tris[triInd]);
                 }
             }
 
             foreach (ref var p in spanPartitions)
-                p._numTriangles = (ushort)p._trianglesCopy.Count;
+                p.NumTriangles = (ushort)p.TrianglesCopy.Count;
         }
     }
 }

@@ -28,32 +28,32 @@ namespace NiflySharp.Structs
 
 		public void Rotate()
 		{
-			if (_v2 < _v1 && _v2 < _v3)
+			if (V2 < V1 && V2 < V3)
 			{
-				Set(_v2, _v3, _v1);
+				Set(V2, V3, V1);
 			}
-			else if (_v3 < _v1)
+			else if (V3 < V1)
 			{
-				Set(_v3, _v1, _v2);
+				Set(V3, V1, V2);
 			}
 		}
 
 		public ushort this[ushort ind]
         {
-            readonly get => ind != 0 ? (ind == 2 ? _v3 : _v2) : _v1;
+            readonly get => ind != 0 ? (ind == 2 ? V3 : V2) : V1;
 
             set
             {
                 switch (ind)
                 {
                     case 0:
-                        _v1 = value;
+                        V1 = value;
                         break;
                     case 1:
-                        _v2 = value;
+                        V2 = value;
                         break;
                     case 2:
-                        _v3 = value;
+                        V3 = value;
                         break;
                 }
             }

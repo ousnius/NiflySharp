@@ -10,119 +10,119 @@ namespace NiflySharp.Structs
     {
         public readonly List<List<float>> GetVertexWeights()
         {
-            return _vertexWeights?.SplitByFixedSize(_numWeightsPerVertex).ToList();
+            return VertexWeights?.SplitByFixedSize(NumWeightsPerVertex).ToList();
         }
 
         public readonly List<List<byte>> GetVertexBoneIndices()
         {
-            return _boneIndices?.SplitByFixedSize(_numWeightsPerVertex).ToList();
+            return BoneIndices?.SplitByFixedSize(NumWeightsPerVertex).ToList();
         }
 
         public readonly List<List<ushort>> GetStripsLists()
         {
-            return _strips?.SplitByFlexSize(_stripLengths).ToList();
+            return Strips?.SplitByFlexSize(StripLengths).ToList();
         }
 
         public bool ConvertStripsToTriangles()
         {
-            if (_numStrips == 0)
+            if (NumStrips == 0)
                 return false;
 
-            _hasFaces = true;
-            _triangles = IndicesHelper.GenerateTrianglesFromStrips(GetStripsLists());
-            _numTriangles = (ushort)_triangles.Count;
-            _numStrips = 0;
-            _strips?.Clear();
-            _stripLengths?.Clear();
-            _trianglesCopy?.Clear();
+            HasFaces = true;
+            Triangles = IndicesHelper.GenerateTrianglesFromStrips(GetStripsLists());
+            NumTriangles = (ushort)Triangles.Count;
+            NumStrips = 0;
+            Strips?.Clear();
+            StripLengths?.Clear();
+            TrianglesCopy?.Clear();
             return true;
         }
 
         public void GenerateTrueTrianglesFromMappedTriangles()
         {
-            if ((_vertexMap?.Count ?? 0) == 0 || (_triangles?.Count ?? 0) == 0)
+            if ((VertexMap?.Count ?? 0) == 0 || (Triangles?.Count ?? 0) == 0)
             {
-                _trianglesCopy ??= [];
-                _trianglesCopy.Clear();
-                if (_numStrips == 0)
-                    _numTriangles = 0;
+                TrianglesCopy ??= [];
+                TrianglesCopy.Clear();
+                if (NumStrips == 0)
+                    NumTriangles = 0;
                 return;
             }
 
-            _trianglesCopy = _trianglesCopy.Resize(_triangles.Count);
-            _triangles.CopyTo(CollectionsMarshal.AsSpan(_trianglesCopy));
+            TrianglesCopy = TrianglesCopy.Resize(Triangles.Count);
+            Triangles.CopyTo(CollectionsMarshal.AsSpan(TrianglesCopy));
 
-            IndicesHelper.ApplyMapToTriangles(ref _trianglesCopy, _vertexMap, out _);
+            IndicesHelper.ApplyMapToTriangles(ref TrianglesCopy, VertexMap, out _);
 
-            foreach (var t in _trianglesCopy)
+            foreach (var t in TrianglesCopy)
                 t.Rotate();
 
-            if (_triangles.Count != _trianglesCopy.Count)
+            if (Triangles.Count != TrianglesCopy.Count)
             {
-                _triangles.Clear();
-                _numTriangles = (ushort)_trianglesCopy.Count;
+                Triangles.Clear();
+                NumTriangles = (ushort)TrianglesCopy.Count;
             }
         }
 
         public void GenerateMappedTrianglesFromTrueTrianglesAndVertexMap()
         {
-            if (_vertexMap?.Count == 0 || _trianglesCopy?.Count == 0)
+            if (VertexMap?.Count == 0 || TrianglesCopy?.Count == 0)
             {
-                _triangles ??= [];
-                _triangles.Clear();
-                if (_numStrips == 0)
-                    _numTriangles = 0;
+                Triangles ??= [];
+                Triangles.Clear();
+                if (NumStrips == 0)
+                    NumTriangles = 0;
                 return;
             }
 
             var invmap = new List<ushort>();
-            for (ushort mi = 0; mi < _vertexMap.Count; ++mi)
+            for (ushort mi = 0; mi < VertexMap.Count; ++mi)
             {
-                if (_vertexMap[mi] >= invmap.Count)
-                    invmap.Resize(_vertexMap[mi] + 1);
+                if (VertexMap[mi] >= invmap.Count)
+                    invmap.Resize(VertexMap[mi] + 1);
 
-                invmap[_vertexMap[mi]] = mi;
+                invmap[VertexMap[mi]] = mi;
             }
 
-            _triangles = _triangles.Resize(_trianglesCopy.Count);
-            _trianglesCopy.CopyTo(CollectionsMarshal.AsSpan(_triangles));
+            Triangles = Triangles.Resize(TrianglesCopy.Count);
+            TrianglesCopy.CopyTo(CollectionsMarshal.AsSpan(Triangles));
 
-            IndicesHelper.ApplyMapToTriangles(ref _triangles, invmap, out _);
+            IndicesHelper.ApplyMapToTriangles(ref Triangles, invmap, out _);
 
-            foreach (var tri in _triangles)
+            foreach (var tri in Triangles)
                 tri.Rotate();
 
-            if (_triangles.Count != _trianglesCopy.Count)
+            if (Triangles.Count != TrianglesCopy.Count)
             {
-                _trianglesCopy.Clear();
-                _numTriangles = (ushort)_triangles.Count;
+                TrianglesCopy.Clear();
+                NumTriangles = (ushort)Triangles.Count;
             }
         }
 
         public void GenerateVertexMapFromTrueTriangles()
         {
-            ushort maxInd = IndicesHelper.CalcMaxTriangleIndex(_trianglesCopy);
+            ushort maxInd = IndicesHelper.CalcMaxTriangleIndex(TrianglesCopy);
 
             var vertUsed = new List<bool>(maxInd + 1);
             vertUsed.Resize(maxInd + 1);
 
-            foreach (var trueTriangle in _trianglesCopy)
+            foreach (var trueTriangle in TrianglesCopy)
             {
-                vertUsed[trueTriangle._v1] = true;
-                vertUsed[trueTriangle._v2] = true;
-                vertUsed[trueTriangle._v3] = true;
+                vertUsed[trueTriangle.V1] = true;
+                vertUsed[trueTriangle.V2] = true;
+                vertUsed[trueTriangle.V3] = true;
             }
 
-            _vertexMap ??= [];
-            _vertexMap.Clear();
+            VertexMap ??= [];
+            VertexMap.Clear();
 
             for (ushort i = 0; i < vertUsed.Count; ++i)
             {
                 if (vertUsed[i])
-                    _vertexMap.Add(i);
+                    VertexMap.Add(i);
             }
 
-            _numVertices = (ushort)_vertexMap.Count;
+            NumVertices = (ushort)VertexMap.Count;
         }
     }
 }

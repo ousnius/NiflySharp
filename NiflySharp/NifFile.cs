@@ -397,10 +397,10 @@ namespace NiflySharp
 
                             for (int i = 0; i < bsDynamicTriShape.VertexCount; i++)
                             {
-                                vertexDataSpan[i]._vertex.X = bsDynamicTriShape.Vertices[i].X;
-                                vertexDataSpan[i]._vertex.Y = bsDynamicTriShape.Vertices[i].Y;
-                                vertexDataSpan[i]._vertex.Z = bsDynamicTriShape.Vertices[i].Z;
-                                vertexDataSpan[i]._bitangentX = bsDynamicTriShape.Vertices[i].W;
+                                vertexDataSpan[i].Vertex.X = bsDynamicTriShape.Vertices[i].X;
+                                vertexDataSpan[i].Vertex.Y = bsDynamicTriShape.Vertices[i].Y;
+                                vertexDataSpan[i].Vertex.Z = bsDynamicTriShape.Vertices[i].Z;
+                                vertexDataSpan[i].BitangentX = bsDynamicTriShape.Vertices[i].W;
                             }
                         }
                         else if (bsDynamicTriShape.VertexData != null)
@@ -414,17 +414,17 @@ namespace NiflySharp
                             {
                                 if (bsDynamicTriShape.IsFullPrecision)
                                 {
-                                    vertexDataSpan[i]._vertex_V3.X = bsDynamicTriShape.Vertices[i].X;
-                                    vertexDataSpan[i]._vertex_V3.Y = bsDynamicTriShape.Vertices[i].Y;
-                                    vertexDataSpan[i]._vertex_V3.Z = bsDynamicTriShape.Vertices[i].Z;
-                                    vertexDataSpan[i]._bitangentX_fl = bsDynamicTriShape.Vertices[i].W;
+                                    vertexDataSpan[i].Vertex.X = bsDynamicTriShape.Vertices[i].X;
+                                    vertexDataSpan[i].Vertex.Y = bsDynamicTriShape.Vertices[i].Y;
+                                    vertexDataSpan[i].Vertex.Z = bsDynamicTriShape.Vertices[i].Z;
+                                    vertexDataSpan[i].BitangentX = bsDynamicTriShape.Vertices[i].W;
                                 }
                                 else
                                 {
-                                    vertexDataSpan[i]._vertex_HV3._x = (Half)bsDynamicTriShape.Vertices[i].X;
-                                    vertexDataSpan[i]._vertex_HV3._y = (Half)bsDynamicTriShape.Vertices[i].Y;
-                                    vertexDataSpan[i]._vertex_HV3._z = (Half)bsDynamicTriShape.Vertices[i].Z;
-                                    vertexDataSpan[i]._bitangentX_SH = (Half)bsDynamicTriShape.Vertices[i].W;
+                                    vertexDataSpan[i].VertexHalf.X = (Half)bsDynamicTriShape.Vertices[i].X;
+                                    vertexDataSpan[i].VertexHalf.Y = (Half)bsDynamicTriShape.Vertices[i].Y;
+                                    vertexDataSpan[i].VertexHalf.Z = (Half)bsDynamicTriShape.Vertices[i].Z;
+                                    vertexDataSpan[i].BitangentXHalf = (Half)bsDynamicTriShape.Vertices[i].W;
                                 }
                             }
                         }
@@ -1679,10 +1679,10 @@ namespace NiflySharp
                                 float b = Math.Max(0.0f, Math.Min(1.0f, geomData.VertexColors[i].B));
                                 float a = Math.Max(0.0f, Math.Min(1.0f, geomData.VertexColors[i].A));
 
-                                vertexDataSpan[i]._vertexColors._r = (byte)Math.Floor(r == 1.0f ? 255.0 : r * 256.0);
-                                vertexDataSpan[i]._vertexColors._g = (byte)Math.Floor(g == 1.0f ? 255.0 : g * 256.0);
-                                vertexDataSpan[i]._vertexColors._b = (byte)Math.Floor(b == 1.0f ? 255.0 : b * 256.0);
-                                vertexDataSpan[i]._vertexColors._a = (byte)Math.Floor(a == 1.0f ? 255.0 : a * 256.0);
+                                vertexDataSpan[i].VertexColors.R = (byte)Math.Floor(r == 1.0f ? 255.0 : r * 256.0);
+                                vertexDataSpan[i].VertexColors.G = (byte)Math.Floor(g == 1.0f ? 255.0 : g * 256.0);
+                                vertexDataSpan[i].VertexColors.B = (byte)Math.Floor(b == 1.0f ? 255.0 : b * 256.0);
+                                vertexDataSpan[i].VertexColors.A = (byte)Math.Floor(a == 1.0f ? 255.0 : a * 256.0);
                             }
                         }
 
@@ -1760,23 +1760,23 @@ namespace NiflySharp
                                             {
                                                 if (part.HasVertexWeights ?? false && vertexWeights != null)
                                                 {
-                                                    vertexDataSpan[vindex]._boneWeights = new Half[part.NumWeightsPerVertex];
+                                                    vertexDataSpan[vindex].BoneWeights = new Half[part.NumWeightsPerVertex];
 
                                                     var weights = vertexWeights[vindex];
                                                     for (int n = 0; n < part.NumWeightsPerVertex; n++)
                                                     {
-                                                        vertexDataSpan[vindex]._boneWeights[n] = (Half)weights[n];
+                                                        vertexDataSpan[vindex].BoneWeights[n] = (Half)weights[n];
                                                     }
                                                 }
 
                                                 if (part.HasBoneIndices ?? false && boneIndices != null)
                                                 {
-                                                    vertexDataSpan[vindex]._boneIndices = new byte[part.NumWeightsPerVertex];
+                                                    vertexDataSpan[vindex].BoneIndices = new byte[part.NumWeightsPerVertex];
 
                                                     var bindices = boneIndices[vindex];
                                                     for (int n = 0; n < part.NumWeightsPerVertex; n++)
                                                     {
-                                                        vertexDataSpan[vindex]._boneIndices[n] = bindices[n];
+                                                        vertexDataSpan[vindex].BoneIndices[n] = bindices[n];
                                                     }
                                                 }
                                             }
@@ -2125,7 +2125,7 @@ namespace NiflySharp
                 var triBones = new HashSet<int>();
                 for (ushort i = 0; i < 3; i++)
                     foreach (var tb in vertBoneWeights[tri[i]])
-                        triBones.Add(tb._index);
+                        triBones.Add(tb.Index);
 
                 // How many new bones are in the tri's bone list?
                 ushort newBoneCount = 0;
@@ -2147,8 +2147,8 @@ namespace NiflySharp
                     {
                         var info = new BodyPartList
                         {
-                            _partFlag = BSPartFlag.PF_EDITOR_VISIBLE,
-                            _bodyPart = bsdSkinInst.Partitions[partInd]._bodyPart
+                            PartFlag = BSPartFlag.PF_EDITOR_VISIBLE,
+                            BodyPart = bsdSkinInst.Partitions[partInd].BodyPart
                         };
                         bsdSkinInst.Partitions.Insert(partInd + 1, info);
                     }
@@ -2168,12 +2168,12 @@ namespace NiflySharp
             {
                 part = new SkinPartition
                 {
-                    _hasBoneIndices = true,
-                    _hasFaces = true,
-                    _hasVertexMap = true,
-                    _hasVertexWeights = true,
-                    _numWeightsPerVertex = maxBonesPerVertex,
-                    _globalVB = false
+                    HasBoneIndices = true,
+                    HasFaces = true,
+                    HasVertexMap = true,
+                    HasVertexWeights = true,
+                    NumWeightsPerVertex = maxBonesPerVertex,
+                    GlobalVB = false
                 };
             }
 
@@ -2191,16 +2191,16 @@ namespace NiflySharp
 		        var boneLookup = new Dictionary<int, byte>();
 		        boneLookup.EnsureCapacity(partBones[partInd].Count);
 
-		        part._numBones = (ushort)partBones[partInd].Count;
-                part._bones = new List<ushort>(part._numBones);
+		        part.NumBones = (ushort)partBones[partInd].Count;
+                part.Bones = new List<ushort>(part.NumBones);
 
 		        foreach (var b in partBones[partInd])
                 {
-			        part._bones.Add((ushort)b);
-			        boneLookup[b] = (byte)(part._bones.Count - 1);
+			        part.Bones.Add((ushort)b);
+			        boneLookup[b] = (byte)(part.Bones.Count - 1);
 		        }
 
-		        foreach (var v in part._vertexMap)
+		        foreach (var v in part.VertexMap)
                 {
 			        var b = new byte[4];
                     var vw = new float[4];
@@ -2211,12 +2211,12 @@ namespace NiflySharp
 				        if (bi == 4)
 					        break;
 
-                        if (boneLookup.TryGetValue(vertBoneWeights[v][bi]._index, out byte lookupValue))
+                        if (boneLookup.TryGetValue(vertBoneWeights[v][bi].Index, out byte lookupValue))
                             b[bi] = lookupValue;
                         else
                             b[bi] = 0;
 
-				        vw[bi] = vertBoneWeights[v][bi]._weight;
+				        vw[bi] = vertBoneWeights[v][bi].Weight;
 				        tot += vw[bi];
 			        }
 
@@ -2224,11 +2224,11 @@ namespace NiflySharp
 				        for (int bi = 0; bi < 4; bi++)
 					        vw[bi] /= tot;
 
-                    part._boneIndices ??= [];
-                    part._boneIndices.AddRange(b);
+                    part.BoneIndices ??= [];
+                    part.BoneIndices.AddRange(b);
 
-                    part._vertexWeights ??= [];
-                    part._vertexWeights.AddRange(vw);
+                    part.VertexWeights ??= [];
+                    part.VertexWeights.AddRange(vw);
 		        }
 	        }
 
@@ -2262,7 +2262,7 @@ namespace NiflySharp
                 if (Header.Version.IsFO3())
                 {
                     // Don't make FO3/NV meat caps visible
-                    if ((int)partitionsSpan[i]._bodyPart < 100 || (int)partitionsSpan[i]._bodyPart >= 1000)
+                    if ((int)partitionsSpan[i].BodyPart < 100 || (int)partitionsSpan[i].BodyPart >= 1000)
                         flags |= BSPartFlag.PF_EDITOR_VISIBLE;
                 }
                 else
@@ -2271,13 +2271,13 @@ namespace NiflySharp
                 if (i != 0)
                 {
                     // Start a new set if the previous bones are different
-                    if (skinPart.Partitions.Count > i && skinPart.Partitions[i]._bones != skinPart.Partitions[i - 1]._bones)
+                    if (skinPart.Partitions.Count > i && skinPart.Partitions[i].Bones != skinPart.Partitions[i - 1].Bones)
                         flags |= BSPartFlag.PF_START_NET_BONESET;
                 }
                 else
                     flags |= BSPartFlag.PF_START_NET_BONESET;
 
-                partitionsSpan[i]._partFlag = flags;
+                partitionsSpan[i].PartFlag = flags;
             }
         }
     }

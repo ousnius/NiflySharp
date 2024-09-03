@@ -18,9 +18,9 @@ namespace NiflySharp.Helpers
 			ushort maxInd = 0;
 			for (int i = 0; i < triangles.Count; ++i)
             {
-                maxInd = Math.Max(maxInd, triangles[i]._v1);
-                maxInd = Math.Max(maxInd, triangles[i]._v2);
-                maxInd = Math.Max(maxInd, triangles[i]._v3);
+                maxInd = Math.Max(maxInd, triangles[i].V1);
+                maxInd = Math.Max(maxInd, triangles[i].V2);
+                maxInd = Math.Max(maxInd, triangles[i].V3);
             }
 
 			return maxInd;

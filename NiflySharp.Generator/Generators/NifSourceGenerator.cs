@@ -635,6 +635,9 @@ namespace NiflySharp.Bitfields
                 string fieldNameUp = SourceGenUtil.NormalizeFieldName(field.Name, typeName, false); // Field name for public properties (CamelCase)
                 string origFieldName = fieldName;
 
+                if (nifObject.IsStruct) // use public naming scheme for struct fields
+                    fieldName = fieldNameUp;
+
                 if (nifXml.GetFieldNameCount(nifObject, field.Name, field.Type) > 0)
                 {
                     // Append an abbreviation of the field type if it appears for than once in the object
@@ -714,24 +717,34 @@ namespace NiflySharp.Bitfields
                             defaultString = $" = {defaultString}";
                     }
 
-                    // Create struct fields as internal and class fields as protected
-                    fieldsSection +=
-                        $"{fieldComment}\r\n" +
-                        $"        {(nifObject.IsStruct ? "internal" : "protected")} {fieldTypeName} {fieldName}{defaultString};\r\n";
-
-#if !PUBLIC_PROPERTIES_ALL
-                    if (!SourceGenUtil.ClassesWithoutProperties.Contains(typeName))
+                    if (nifObject.IsStruct)
                     {
-#endif
-                        // Create additional public property for the field
+                        // Create public struct fields
                         fieldsSection +=
-                            $"        public {fieldTypeName} {fieldNameUp} {{ get => {fieldName}; set => {fieldName} = value; }}\r\n";
-
-                        publicPropertiesSection +=
-                            $"        public {fieldTypeName} {fieldNameUp} {{ get; set; }}\r\n";
-#if !PUBLIC_PROPERTIES_ALL
+                            $"{fieldComment}\r\n" +
+                            $"        public {fieldTypeName} {fieldName}{defaultString};\r\n";
                     }
+                    else
+                    {
+                        // Create protected class fields
+                        fieldsSection +=
+                            $"{fieldComment}\r\n" +
+                            $"        protected {fieldTypeName} {fieldName}{defaultString};\r\n";
+
+#if !PUBLIC_PROPERTIES_ALL
+                        if (!SourceGenUtil.ClassesWithoutProperties.Contains(typeName))
+                        {
 #endif
+                            // Create additional public property for the field
+                            fieldsSection +=
+                                $"        public {fieldTypeName} {fieldNameUp} {{ get => {fieldName}; set => {fieldName} = value; }}\r\n";
+
+                            publicPropertiesSection +=
+                                $"        public {fieldTypeName} {fieldNameUp} {{ get; set; }}\r\n";
+#if !PUBLIC_PROPERTIES_ALL
+                        }
+#endif
+                    }
 
                     if (!isStringRef && nifXml.IsStructType(field))
                     {

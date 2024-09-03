@@ -277,8 +277,8 @@ namespace NiflySharp.Blocks
 
                     for (int uv = 0; uv < _uVSets.Count; uv++)
                     {
-                        uvSetsSpan[uv]._u = uvs[uv]._u;
-                        uvSetsSpan[uv]._v = uvs[uv]._v;
+                        uvSetsSpan[uv].U = uvs[uv].U;
+                        uvSetsSpan[uv].V = uvs[uv].V;
                     }
                 }
                 else

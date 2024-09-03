@@ -23,7 +23,9 @@ namespace NiflySharp.Generator
             "Vector2",
             "Vector3",
             "Vector4",
-            "Quaternion"
+            "Quaternion",
+            "BSVertexData",
+            "BSVertexDataSSE"
         };
 
         /// <summary>
@@ -384,7 +386,7 @@ namespace NiflySharp.Generator
                 if (field == null)
                     return fieldName;
 
-                string normFieldName = NormalizeFieldName(fieldName, typeName);
+                string normFieldName = NormalizeFieldName(fieldName, typeName, !nifObject.IsStruct);
 
                 if (nifXml.IsEnumType(field))
                 {
@@ -575,7 +577,7 @@ namespace NiflySharp.Generator
                 // Build final if-branch
                 if (!string.IsNullOrWhiteSpace(fieldCondition))
                 {
-                    string normFieldName = NormalizeFieldName(field.Name, typeName);
+                    string normFieldName = NormalizeFieldName(field.Name, typeName, !obj.IsStruct);
                     string fieldTypeName = GetFieldTypeName(obj, field, out _, out _, out _, out _);
                     string typeAbbrev = AbbreviateType(fieldTypeName);
                     normFieldName += $"_{typeAbbrev}";

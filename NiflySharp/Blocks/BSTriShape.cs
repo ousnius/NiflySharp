@@ -107,9 +107,9 @@ namespace NiflySharp.Blocks
             else if (_vertexData_List_BSVD != null)
             {
                 if (_vertexDesc.VertexAttributes.HasFlag(VertexAttribute.Full_Precision))
-                    vertices = _vertexData_List_BSVD.Select(v => v.Vertex_V3).ToList();
+                    vertices = _vertexData_List_BSVD.Select(v => v.Vertex).ToList();
                 else
-                    vertices = _vertexData_List_BSVD.Select(v => new Vector3((float)v.Vertex_HV3.X, (float)v.Vertex_HV3.Y, (float)v.Vertex_HV3.Z)).ToList();
+                    vertices = _vertexData_List_BSVD.Select(v => new Vector3((float)v.VertexHalf.X, (float)v.VertexHalf.Y, (float)v.VertexHalf.Z)).ToList();
             }
 
             if (vertices != null)
@@ -230,10 +230,10 @@ namespace NiflySharp.Blocks
                             var vertexDataSpan = CollectionsMarshal.AsSpan(_vertexData_List_BSVDSSE);
                             foreach (ref var v in vertexDataSpan)
                             {
-                                v._vertexColors._r = 255;
-                                v._vertexColors._g = 255;
-                                v._vertexColors._b = 255;
-                                v._vertexColors._a = 255;
+                                v.VertexColors.R = 255;
+                                v.VertexColors.G = 255;
+                                v.VertexColors.B = 255;
+                                v.VertexColors.A = 255;
                             }
                         }
                         else if (_vertexData_List_BSVD != null)
@@ -241,10 +241,10 @@ namespace NiflySharp.Blocks
                             var vertexDataSpan = CollectionsMarshal.AsSpan(_vertexData_List_BSVD);
                             foreach (ref var v in vertexDataSpan)
                             {
-                                v._vertexColors._r = 255;
-                                v._vertexColors._g = 255;
-                                v._vertexColors._b = 255;
-                                v._vertexColors._a = 255;
+                                v.VertexColors.R = 255;
+                                v.VertexColors.G = 255;
+                                v.VertexColors.B = 255;
+                                v.VertexColors.A = 255;
                             }
                         }
                     }
@@ -428,21 +428,21 @@ namespace NiflySharp.Blocks
                 for (int i = 0; i < _numVertices; i++)
                 {
                     ref var vertex = ref vertexDataSpan[i];
-                    vertex._vertex = vertices[i];
-                    vertex._normal._x = 0;
-                    vertex._normal._y = 0;
-                    vertex._normal._z = 0;
-                    vertex._vertexColors._r = 255;
-                    vertex._vertexColors._g = 255;
-                    vertex._vertexColors._b = 255;
-                    vertex._vertexColors._a = 255;
-                    vertex._boneWeights ??= new Half[4];
-                    vertex._boneIndices ??= new byte[4];
+                    vertex.Vertex = vertices[i];
+                    vertex.Normal.X = 0;
+                    vertex.Normal.Y = 0;
+                    vertex.Normal.Z = 0;
+                    vertex.VertexColors.R = 255;
+                    vertex.VertexColors.G = 255;
+                    vertex.VertexColors.B = 255;
+                    vertex.VertexColors.A = 255;
+                    vertex.BoneWeights ??= new Half[4];
+                    vertex.BoneIndices ??= new byte[4];
 
                     if (uvSets != null && uvSets.Count == _numVertices)
                     {
-                        vertex._uV._u = (Half)uvSets[i].U;
-                        vertex._uV._v = (Half)uvSets[i].V;
+                        vertex.UV.U = (Half)uvSets[i].U;
+                        vertex.UV.V = (Half)uvSets[i].V;
                     }
 
                     //Array.Clear(vertex._boneWeights);
@@ -461,31 +461,31 @@ namespace NiflySharp.Blocks
 
                     if (IsFullPrecision)
                     {
-                        vertex._vertex_V3 = vertices[i];
-                        vertex._bitangentX_fl = 0.0f;
+                        vertex.Vertex = vertices[i];
+                        vertex.BitangentX = 0.0f;
                     }
                     else
                     {
-                        vertex._vertex_HV3._x = (Half)vertices[i].X;
-                        vertex._vertex_HV3._y = (Half)vertices[i].Y;
-                        vertex._vertex_HV3._z = (Half)vertices[i].Z;
-                        vertex._bitangentX_SH = Half.Zero;
+                        vertex.VertexHalf.X = (Half)vertices[i].X;
+                        vertex.VertexHalf.Y = (Half)vertices[i].Y;
+                        vertex.VertexHalf.Z = (Half)vertices[i].Z;
+                        vertex.BitangentXHalf = Half.Zero;
                     }
 
-                    vertex._normal._x = 0;
-                    vertex._normal._y = 0;
-                    vertex._normal._z = 0;
-                    vertex._vertexColors._r = 255;
-                    vertex._vertexColors._g = 255;
-                    vertex._vertexColors._b = 255;
-                    vertex._vertexColors._a = 255;
-                    vertex._boneWeights ??= new Half[4];
-                    vertex._boneIndices ??= new byte[4];
+                    vertex.Normal.X = 0;
+                    vertex.Normal.Y = 0;
+                    vertex.Normal.Z = 0;
+                    vertex.VertexColors.R = 255;
+                    vertex.VertexColors.G = 255;
+                    vertex.VertexColors.B = 255;
+                    vertex.VertexColors.A = 255;
+                    vertex.BoneWeights ??= new Half[4];
+                    vertex.BoneIndices ??= new byte[4];
 
                     if (uvSets != null && uvSets.Count == _numVertices)
                     {
-                        vertex._uV._u = (Half)uvSets[i].U;
-                        vertex._uV._v = (Half)uvSets[i].V;
+                        vertex.UV.U = (Half)uvSets[i].U;
+                        vertex.UV.V = (Half)uvSets[i].V;
                     }
 
                     //Array.Clear(vertex._boneWeights);
@@ -537,9 +537,9 @@ namespace NiflySharp.Blocks
                 for (int i = 0; i < _numVertices; i++)
                 {
                     rawVerticesSpan[i] = vertices[i];
-                    vertexDataSpan[i]._vertex.X = vertices[i].X;
-                    vertexDataSpan[i]._vertex.Y = vertices[i].Y;
-                    vertexDataSpan[i]._vertex.Z = vertices[i].Z;
+                    vertexDataSpan[i].Vertex.X = vertices[i].X;
+                    vertexDataSpan[i].Vertex.Y = vertices[i].Y;
+                    vertexDataSpan[i].Vertex.Z = vertices[i].Z;
                 }
             }
             else if (_vertexData_List_BSVD != null)
@@ -551,15 +551,15 @@ namespace NiflySharp.Blocks
                     rawVerticesSpan[i] = vertices[i];
                     if (IsFullPrecision)
                     {
-                        vertexDataSpan[i]._vertex_V3.X = vertices[i].X;
-                        vertexDataSpan[i]._vertex_V3.Y = vertices[i].Y;
-                        vertexDataSpan[i]._vertex_V3.Z = vertices[i].Z;
+                        vertexDataSpan[i].Vertex.X = vertices[i].X;
+                        vertexDataSpan[i].Vertex.Y = vertices[i].Y;
+                        vertexDataSpan[i].Vertex.Z = vertices[i].Z;
                     }
                     else
                     {
-                        vertexDataSpan[i]._vertex_HV3._x = (Half)vertices[i].X;
-                        vertexDataSpan[i]._vertex_HV3._y = (Half)vertices[i].Y;
-                        vertexDataSpan[i]._vertex_HV3._z = (Half)vertices[i].Z;
+                        vertexDataSpan[i].VertexHalf.X = (Half)vertices[i].X;
+                        vertexDataSpan[i].VertexHalf.Y = (Half)vertices[i].Y;
+                        vertexDataSpan[i].VertexHalf.Z = (Half)vertices[i].Z;
                     }
                 }
             }
@@ -586,9 +586,9 @@ namespace NiflySharp.Blocks
                 for (int i = 0; i < _numVertices; i++)
                 {
                     rawNormalsSpan[i] = normals[i];
-                    vertexDataSpan[i]._normal._x = (sbyte)Math.Round((normals[i].X + 1.0f) / 2.0f * 255.0f);
-                    vertexDataSpan[i]._normal._y = (sbyte)Math.Round((normals[i].Y + 1.0f) / 2.0f * 255.0f);
-                    vertexDataSpan[i]._normal._z = (sbyte)Math.Round((normals[i].Z + 1.0f) / 2.0f * 255.0f);
+                    vertexDataSpan[i].Normal.X = (sbyte)Math.Round((normals[i].X + 1.0f) / 2.0f * 255.0f);
+                    vertexDataSpan[i].Normal.Y = (sbyte)Math.Round((normals[i].Y + 1.0f) / 2.0f * 255.0f);
+                    vertexDataSpan[i].Normal.Z = (sbyte)Math.Round((normals[i].Z + 1.0f) / 2.0f * 255.0f);
                 }
             }
             else if (_vertexData_List_BSVD != null)
@@ -598,9 +598,9 @@ namespace NiflySharp.Blocks
                 for (int i = 0; i < _numVertices; i++)
                 {
                     rawNormalsSpan[i] = normals[i];
-                    vertexDataSpan[i]._normal._x = (sbyte)Math.Round((normals[i].X + 1.0f) / 2.0f * 255.0f);
-                    vertexDataSpan[i]._normal._y = (sbyte)Math.Round((normals[i].Y + 1.0f) / 2.0f * 255.0f);
-                    vertexDataSpan[i]._normal._z = (sbyte)Math.Round((normals[i].Z + 1.0f) / 2.0f * 255.0f);
+                    vertexDataSpan[i].Normal.X = (sbyte)Math.Round((normals[i].X + 1.0f) / 2.0f * 255.0f);
+                    vertexDataSpan[i].Normal.Y = (sbyte)Math.Round((normals[i].Y + 1.0f) / 2.0f * 255.0f);
+                    vertexDataSpan[i].Normal.Z = (sbyte)Math.Round((normals[i].Z + 1.0f) / 2.0f * 255.0f);
                 }
             }
         }
@@ -626,9 +626,9 @@ namespace NiflySharp.Blocks
                 for (int i = 0; i < _numVertices; i++)
                 {
                     rawTangentsSpan[i] = tangents[i];
-                    vertexDataSpan[i]._tangent._x = (sbyte)Math.Round((tangents[i].X + 1.0f) / 2.0f * 255.0f);
-                    vertexDataSpan[i]._tangent._y = (sbyte)Math.Round((tangents[i].Y + 1.0f) / 2.0f * 255.0f);
-                    vertexDataSpan[i]._tangent._z = (sbyte)Math.Round((tangents[i].Z + 1.0f) / 2.0f * 255.0f);
+                    vertexDataSpan[i].Tangent.X = (sbyte)Math.Round((tangents[i].X + 1.0f) / 2.0f * 255.0f);
+                    vertexDataSpan[i].Tangent.Y = (sbyte)Math.Round((tangents[i].Y + 1.0f) / 2.0f * 255.0f);
+                    vertexDataSpan[i].Tangent.Z = (sbyte)Math.Round((tangents[i].Z + 1.0f) / 2.0f * 255.0f);
                 }
             }
             else if (_vertexData_List_BSVD != null)
@@ -638,9 +638,9 @@ namespace NiflySharp.Blocks
                 for (int i = 0; i < _numVertices; i++)
                 {
                     rawTangentsSpan[i] = tangents[i];
-                    vertexDataSpan[i]._tangent._x = (sbyte)Math.Round((tangents[i].X + 1.0f) / 2.0f * 255.0f);
-                    vertexDataSpan[i]._tangent._y = (sbyte)Math.Round((tangents[i].Y + 1.0f) / 2.0f * 255.0f);
-                    vertexDataSpan[i]._tangent._z = (sbyte)Math.Round((tangents[i].Z + 1.0f) / 2.0f * 255.0f);
+                    vertexDataSpan[i].Tangent.X = (sbyte)Math.Round((tangents[i].X + 1.0f) / 2.0f * 255.0f);
+                    vertexDataSpan[i].Tangent.Y = (sbyte)Math.Round((tangents[i].Y + 1.0f) / 2.0f * 255.0f);
+                    vertexDataSpan[i].Tangent.Z = (sbyte)Math.Round((tangents[i].Z + 1.0f) / 2.0f * 255.0f);
                 }
             }
         }
@@ -666,9 +666,9 @@ namespace NiflySharp.Blocks
                 for (int i = 0; i < _numVertices; i++)
                 {
                     rawBitangentsSpan[i] = bitangents[i];
-                    vertexDataSpan[i]._bitangentX = bitangents[i].X;
-                    vertexDataSpan[i]._bitangentY = (sbyte)Math.Round((bitangents[i].Y + 1.0f) / 2.0f * 255.0f);
-                    vertexDataSpan[i]._bitangentZ = (sbyte)Math.Round((bitangents[i].Z + 1.0f) / 2.0f * 255.0f);
+                    vertexDataSpan[i].BitangentX = bitangents[i].X;
+                    vertexDataSpan[i].BitangentY = (sbyte)Math.Round((bitangents[i].Y + 1.0f) / 2.0f * 255.0f);
+                    vertexDataSpan[i].BitangentZ = (sbyte)Math.Round((bitangents[i].Z + 1.0f) / 2.0f * 255.0f);
                 }
             }
             else if (_vertexData_List_BSVD != null)
@@ -679,11 +679,11 @@ namespace NiflySharp.Blocks
                 {
                     rawBitangentsSpan[i] = bitangents[i];
                     if (IsFullPrecision)
-                        vertexDataSpan[i]._bitangentX_fl = bitangents[i].X;
+                        vertexDataSpan[i].BitangentX = bitangents[i].X;
                     else
-                        vertexDataSpan[i]._bitangentX_SH = (Half)bitangents[i].X;
-                    vertexDataSpan[i]._bitangentY = (sbyte)Math.Round((bitangents[i].Y + 1.0f) / 2.0f * 255.0f);
-                    vertexDataSpan[i]._bitangentZ = (sbyte)Math.Round((bitangents[i].Z + 1.0f) / 2.0f * 255.0f);
+                        vertexDataSpan[i].BitangentXHalf = (Half)bitangents[i].X;
+                    vertexDataSpan[i].BitangentY = (sbyte)Math.Round((bitangents[i].Y + 1.0f) / 2.0f * 255.0f);
+                    vertexDataSpan[i].BitangentZ = (sbyte)Math.Round((bitangents[i].Z + 1.0f) / 2.0f * 255.0f);
                 }
             }
         }
@@ -709,8 +709,8 @@ namespace NiflySharp.Blocks
                 for (int i = 0; i < _numVertices; i++)
                 {
                     rawUVsSpan[i] = uvs[i];
-                    vertexDataSpan[i]._uV._u = (Half)uvs[i].X;
-                    vertexDataSpan[i]._uV._v = (Half)uvs[i].Y;
+                    vertexDataSpan[i].UV.U = (Half)uvs[i].X;
+                    vertexDataSpan[i].UV.V = (Half)uvs[i].Y;
                 }
             }
             else if (_vertexData_List_BSVD != null)
@@ -720,8 +720,8 @@ namespace NiflySharp.Blocks
                 for (int i = 0; i < _numVertices; i++)
                 {
                     rawUVsSpan[i] = uvs[i];
-                    vertexDataSpan[i]._uV._u = (Half)uvs[i].X;
-                    vertexDataSpan[i]._uV._v = (Half)uvs[i].Y;
+                    vertexDataSpan[i].UV.U = (Half)uvs[i].X;
+                    vertexDataSpan[i].UV.V = (Half)uvs[i].Y;
                 }
             }
         }
@@ -748,17 +748,17 @@ namespace NiflySharp.Blocks
                 {
                     rawVertexColorsSpan[i] = colors[i];
 
-                    float value = Math.Max(0.0f, Math.Min(1.0f, colors[i]._r));
-                    vertexDataSpan[i]._vertexColors._r = (byte)Math.Floor(value == 1.0f ? 255.0f : value * 256.0f);
+                    float value = Math.Max(0.0f, Math.Min(1.0f, colors[i].R));
+                    vertexDataSpan[i].VertexColors.R = (byte)Math.Floor(value == 1.0f ? 255.0f : value * 256.0f);
 
-                    value = Math.Max(0.0f, Math.Min(1.0f, colors[i]._g));
-                    vertexDataSpan[i]._vertexColors._g = (byte)Math.Floor(value == 1.0f ? 255.0f : value * 256.0f);
+                    value = Math.Max(0.0f, Math.Min(1.0f, colors[i].G));
+                    vertexDataSpan[i].VertexColors.G = (byte)Math.Floor(value == 1.0f ? 255.0f : value * 256.0f);
 
-                    value = Math.Max(0.0f, Math.Min(1.0f, colors[i]._b));
-                    vertexDataSpan[i]._vertexColors._b = (byte)Math.Floor(value == 1.0f ? 255.0f : value * 256.0f);
+                    value = Math.Max(0.0f, Math.Min(1.0f, colors[i].B));
+                    vertexDataSpan[i].VertexColors.B = (byte)Math.Floor(value == 1.0f ? 255.0f : value * 256.0f);
 
-                    value = Math.Max(0.0f, Math.Min(1.0f, colors[i]._a));
-                    vertexDataSpan[i]._vertexColors._a = (byte)Math.Floor(value == 1.0f ? 255.0f : value * 256.0f);
+                    value = Math.Max(0.0f, Math.Min(1.0f, colors[i].A));
+                    vertexDataSpan[i].VertexColors.A = (byte)Math.Floor(value == 1.0f ? 255.0f : value * 256.0f);
                 }
             }
             else if (_vertexData_List_BSVD != null)
@@ -769,17 +769,17 @@ namespace NiflySharp.Blocks
                 {
                     rawVertexColorsSpan[i] = colors[i];
 
-                    float value = Math.Max(0.0f, Math.Min(1.0f, colors[i]._r));
-                    vertexDataSpan[i]._vertexColors._r = (byte)Math.Floor(value == 1.0f ? 255.0f : value * 256.0f);
+                    float value = Math.Max(0.0f, Math.Min(1.0f, colors[i].R));
+                    vertexDataSpan[i].VertexColors.R = (byte)Math.Floor(value == 1.0f ? 255.0f : value * 256.0f);
 
-                    value = Math.Max(0.0f, Math.Min(1.0f, colors[i]._g));
-                    vertexDataSpan[i]._vertexColors._g = (byte)Math.Floor(value == 1.0f ? 255.0f : value * 256.0f);
+                    value = Math.Max(0.0f, Math.Min(1.0f, colors[i].G));
+                    vertexDataSpan[i].VertexColors.G = (byte)Math.Floor(value == 1.0f ? 255.0f : value * 256.0f);
 
-                    value = Math.Max(0.0f, Math.Min(1.0f, colors[i]._b));
-                    vertexDataSpan[i]._vertexColors._b = (byte)Math.Floor(value == 1.0f ? 255.0f : value * 256.0f);
+                    value = Math.Max(0.0f, Math.Min(1.0f, colors[i].B));
+                    vertexDataSpan[i].VertexColors.B = (byte)Math.Floor(value == 1.0f ? 255.0f : value * 256.0f);
 
-                    value = Math.Max(0.0f, Math.Min(1.0f, colors[i]._a));
-                    vertexDataSpan[i]._vertexColors._a = (byte)Math.Floor(value == 1.0f ? 255.0f : value * 256.0f);
+                    value = Math.Max(0.0f, Math.Min(1.0f, colors[i].A));
+                    vertexDataSpan[i].VertexColors.A = (byte)Math.Floor(value == 1.0f ? 255.0f : value * 256.0f);
                 }
             }
         }
@@ -805,7 +805,7 @@ namespace NiflySharp.Blocks
                 for (int i = 0; i < _numVertices; i++)
                 {
                     rawEyeDataSpan[i] = eyeData[i];
-                    vertexDataSpan[i]._eyeData = eyeData[i];
+                    vertexDataSpan[i].EyeData = eyeData[i];
                 }
             }
             else if (_vertexData_List_BSVD != null)
@@ -815,7 +815,7 @@ namespace NiflySharp.Blocks
                 for (int i = 0; i < _numVertices; i++)
                 {
                     rawEyeDataSpan[i] = eyeData[i];
-                    vertexDataSpan[i]._eyeData = eyeData[i];
+                    vertexDataSpan[i].EyeData = eyeData[i];
                 }
             }
         }
@@ -838,9 +838,9 @@ namespace NiflySharp.Blocks
 
             foreach (var triangle in _triangles)
             {
-                int i1 = triangle._v1;
-                int i2 = triangle._v2;
-                int i3 = triangle._v3;
+                int i1 = triangle.V1;
+                int i2 = triangle.V2;
+                int i3 = triangle.V3;
 
                 if (i1 >= _numVertices || i2 >= _numVertices || i3 >= _numVertices)
                     continue;
@@ -855,38 +855,38 @@ namespace NiflySharp.Blocks
 
                 if (_vertexData_List_BSVDSSE != null)
                 {
-                    v1 = _vertexData_List_BSVDSSE[i1]._vertex;
-                    v2 = _vertexData_List_BSVDSSE[i2]._vertex;
-                    v3 = _vertexData_List_BSVDSSE[i3]._vertex;
+                    v1 = _vertexData_List_BSVDSSE[i1].Vertex;
+                    v2 = _vertexData_List_BSVDSSE[i2].Vertex;
+                    v3 = _vertexData_List_BSVDSSE[i3].Vertex;
 
-                    w1 = new Vector2((float)_vertexData_List_BSVDSSE[i1]._uV._u, (float)_vertexData_List_BSVDSSE[i1]._uV._v);
-                    w2 = new Vector2((float)_vertexData_List_BSVDSSE[i2]._uV._u, (float)_vertexData_List_BSVDSSE[i2]._uV._v);
-                    w3 = new Vector2((float)_vertexData_List_BSVDSSE[i3]._uV._u, (float)_vertexData_List_BSVDSSE[i3]._uV._v);
+                    w1 = new Vector2((float)_vertexData_List_BSVDSSE[i1].UV.U, (float)_vertexData_List_BSVDSSE[i1].UV.V);
+                    w2 = new Vector2((float)_vertexData_List_BSVDSSE[i2].UV.U, (float)_vertexData_List_BSVDSSE[i2].UV.V);
+                    w3 = new Vector2((float)_vertexData_List_BSVDSSE[i3].UV.U, (float)_vertexData_List_BSVDSSE[i3].UV.V);
                 }
                 else if (_vertexData_List_BSVD != null)
                 {
                     if (IsFullPrecision)
                     {
-                        v1 = _vertexData_List_BSVD[i1]._vertex_V3;
-                        v2 = _vertexData_List_BSVD[i2]._vertex_V3;
-                        v3 = _vertexData_List_BSVD[i3]._vertex_V3;
+                        v1 = _vertexData_List_BSVD[i1].Vertex;
+                        v2 = _vertexData_List_BSVD[i2].Vertex;
+                        v3 = _vertexData_List_BSVD[i3].Vertex;
                     }
                     else
                     {
-                        v1 = new Vector3((float)_vertexData_List_BSVD[i1]._vertex_HV3._x,
-                                         (float)_vertexData_List_BSVD[i1]._vertex_HV3._y,
-                                         (float)_vertexData_List_BSVD[i1]._vertex_HV3._z);
-                        v2 = new Vector3((float)_vertexData_List_BSVD[i2]._vertex_HV3._x,
-                                         (float)_vertexData_List_BSVD[i2]._vertex_HV3._y,
-                                         (float)_vertexData_List_BSVD[i2]._vertex_HV3._z);
-                        v3 = new Vector3((float)_vertexData_List_BSVD[i3]._vertex_HV3._x,
-                                         (float)_vertexData_List_BSVD[i3]._vertex_HV3._y,
-                                         (float)_vertexData_List_BSVD[i3]._vertex_HV3._z);
+                        v1 = new Vector3((float)_vertexData_List_BSVD[i1].VertexHalf.X,
+                                         (float)_vertexData_List_BSVD[i1].VertexHalf.Y,
+                                         (float)_vertexData_List_BSVD[i1].VertexHalf.Z);
+                        v2 = new Vector3((float)_vertexData_List_BSVD[i2].VertexHalf.X,
+                                         (float)_vertexData_List_BSVD[i2].VertexHalf.Y,
+                                         (float)_vertexData_List_BSVD[i2].VertexHalf.Z);
+                        v3 = new Vector3((float)_vertexData_List_BSVD[i3].VertexHalf.X,
+                                         (float)_vertexData_List_BSVD[i3].VertexHalf.Y,
+                                         (float)_vertexData_List_BSVD[i3].VertexHalf.Z);
                     }
 
-                    w1 = new Vector2((float)_vertexData_List_BSVD[i1]._uV._u, (float)_vertexData_List_BSVD[i1]._uV._v);
-                    w2 = new Vector2((float)_vertexData_List_BSVD[i2]._uV._u, (float)_vertexData_List_BSVD[i2]._uV._v);
-                    w3 = new Vector2((float)_vertexData_List_BSVD[i3]._uV._u, (float)_vertexData_List_BSVD[i3]._uV._v);
+                    w1 = new Vector2((float)_vertexData_List_BSVD[i1].UV.U, (float)_vertexData_List_BSVD[i1].UV.V);
+                    w2 = new Vector2((float)_vertexData_List_BSVD[i2].UV.U, (float)_vertexData_List_BSVD[i2].UV.V);
+                    w3 = new Vector2((float)_vertexData_List_BSVD[i3].UV.U, (float)_vertexData_List_BSVD[i3].UV.V);
                 }
                 else
                     return;
@@ -966,29 +966,29 @@ namespace NiflySharp.Blocks
                 {
                     var spanVertexData = CollectionsMarshal.AsSpan(_vertexData_List_BSVDSSE);
 
-                    spanVertexData[i]._tangent._x = (sbyte)tX;
-                    spanVertexData[i]._tangent._y = (sbyte)tY;
-                    spanVertexData[i]._tangent._z = (sbyte)tZ;
+                    spanVertexData[i].Tangent.X = (sbyte)tX;
+                    spanVertexData[i].Tangent.Y = (sbyte)tY;
+                    spanVertexData[i].Tangent.Z = (sbyte)tZ;
 
-                    spanVertexData[i]._bitangentX = btX;
-                    spanVertexData[i]._bitangentY = (sbyte)btY;
-                    spanVertexData[i]._bitangentZ = (sbyte)btZ;
+                    spanVertexData[i].BitangentX = btX;
+                    spanVertexData[i].BitangentY = (sbyte)btY;
+                    spanVertexData[i].BitangentZ = (sbyte)btZ;
                 }
                 else if (_vertexData_List_BSVD != null)
                 {
                     var spanVertexData = CollectionsMarshal.AsSpan(_vertexData_List_BSVD);
 
-                    spanVertexData[i]._tangent._x = (sbyte)tX;
-                    spanVertexData[i]._tangent._y = (sbyte)tY;
-                    spanVertexData[i]._tangent._z = (sbyte)tZ;
+                    spanVertexData[i].Tangent.X = (sbyte)tX;
+                    spanVertexData[i].Tangent.Y = (sbyte)tY;
+                    spanVertexData[i].Tangent.Z = (sbyte)tZ;
 
                     if (IsFullPrecision)
-                        spanVertexData[i]._bitangentX_fl = btX;
+                        spanVertexData[i].BitangentX = btX;
                     else
-                        spanVertexData[i]._bitangentX_SH = (Half)btX;
+                        spanVertexData[i].BitangentXHalf = (Half)btX;
 
-                    spanVertexData[i]._bitangentY = (sbyte)btY;
-                    spanVertexData[i]._bitangentZ = (sbyte)btZ;
+                    spanVertexData[i].BitangentY = (sbyte)btY;
+                    spanVertexData[i].BitangentZ = (sbyte)btZ;
                 }
             }
         }
@@ -1112,22 +1112,22 @@ namespace NiflySharp.Blocks
             if (_vertexData_List_BSVDSSE != null)
             {
                 for (ushort i = 0; i < _numVertices; i++)
-                    spanRawVertices[i] = _vertexData_List_BSVDSSE[i]._vertex;
+                    spanRawVertices[i] = _vertexData_List_BSVDSSE[i].Vertex;
             }
             else if (_vertexData_List_BSVD != null)
             {
                 if (IsFullPrecision)
                 {
                     for (ushort i = 0; i < _numVertices; i++)
-                        spanRawVertices[i] = _vertexData_List_BSVD[i]._vertex_V3;
+                        spanRawVertices[i] = _vertexData_List_BSVD[i].Vertex;
                 }
                 else
                 {
                     for (ushort i = 0; i < _numVertices; i++)
                     {
-                        spanRawVertices[i].X = (float)_vertexData_List_BSVD[i]._vertex_HV3._x;
-                        spanRawVertices[i].Y = (float)_vertexData_List_BSVD[i]._vertex_HV3._y;
-                        spanRawVertices[i].Z = (float)_vertexData_List_BSVD[i]._vertex_HV3._z;
+                        spanRawVertices[i].X = (float)_vertexData_List_BSVD[i].VertexHalf.X;
+                        spanRawVertices[i].Y = (float)_vertexData_List_BSVD[i].VertexHalf.Y;
+                        spanRawVertices[i].Z = (float)_vertexData_List_BSVD[i].VertexHalf.Z;
                     }
                 }
             }
@@ -1151,18 +1151,18 @@ namespace NiflySharp.Blocks
             {
                 for (ushort i = 0; i < _numVertices; i++)
                 {
-                    spanRawNormals[i].X = (byte)_vertexData_List_BSVDSSE[i]._normal._x / 255.0f * 2.0f - 1.0f;
-                    spanRawNormals[i].Y = (byte)_vertexData_List_BSVDSSE[i]._normal._y / 255.0f * 2.0f - 1.0f;
-                    spanRawNormals[i].Z = (byte)_vertexData_List_BSVDSSE[i]._normal._z / 255.0f * 2.0f - 1.0f;
+                    spanRawNormals[i].X = (byte)_vertexData_List_BSVDSSE[i].Normal.X / 255.0f * 2.0f - 1.0f;
+                    spanRawNormals[i].Y = (byte)_vertexData_List_BSVDSSE[i].Normal.Y / 255.0f * 2.0f - 1.0f;
+                    spanRawNormals[i].Z = (byte)_vertexData_List_BSVDSSE[i].Normal.Z / 255.0f * 2.0f - 1.0f;
                 }
             }
             else if (_vertexData_List_BSVD != null)
             {
                 for (ushort i = 0; i < _numVertices; i++)
                 {
-                    spanRawNormals[i].X = (byte)_vertexData_List_BSVD[i]._normal._x / 255.0f * 2.0f - 1.0f;
-                    spanRawNormals[i].Y = (byte)_vertexData_List_BSVD[i]._normal._y / 255.0f * 2.0f - 1.0f;
-                    spanRawNormals[i].Z = (byte)_vertexData_List_BSVD[i]._normal._z / 255.0f * 2.0f - 1.0f;
+                    spanRawNormals[i].X = (byte)_vertexData_List_BSVD[i].Normal.X / 255.0f * 2.0f - 1.0f;
+                    spanRawNormals[i].Y = (byte)_vertexData_List_BSVD[i].Normal.Y / 255.0f * 2.0f - 1.0f;
+                    spanRawNormals[i].Z = (byte)_vertexData_List_BSVD[i].Normal.Z / 255.0f * 2.0f - 1.0f;
                 }
             }
 
@@ -1185,18 +1185,18 @@ namespace NiflySharp.Blocks
             {
                 for (ushort i = 0; i < _numVertices; i++)
                 {
-                    spanRawTangents[i].X = (byte)_vertexData_List_BSVDSSE[i]._tangent._x / 255.0f * 2.0f - 1.0f;
-                    spanRawTangents[i].Y = (byte)_vertexData_List_BSVDSSE[i]._tangent._y / 255.0f * 2.0f - 1.0f;
-                    spanRawTangents[i].Z = (byte)_vertexData_List_BSVDSSE[i]._tangent._z / 255.0f * 2.0f - 1.0f;
+                    spanRawTangents[i].X = (byte)_vertexData_List_BSVDSSE[i].Tangent.X / 255.0f * 2.0f - 1.0f;
+                    spanRawTangents[i].Y = (byte)_vertexData_List_BSVDSSE[i].Tangent.Y / 255.0f * 2.0f - 1.0f;
+                    spanRawTangents[i].Z = (byte)_vertexData_List_BSVDSSE[i].Tangent.Z / 255.0f * 2.0f - 1.0f;
                 }
             }
             else if (_vertexData_List_BSVD != null)
             {
                 for (ushort i = 0; i < _numVertices; i++)
                 {
-                    spanRawTangents[i].X = (byte)_vertexData_List_BSVD[i]._tangent._x / 255.0f * 2.0f - 1.0f;
-                    spanRawTangents[i].Y = (byte)_vertexData_List_BSVD[i]._tangent._y / 255.0f * 2.0f - 1.0f;
-                    spanRawTangents[i].Z = (byte)_vertexData_List_BSVD[i]._tangent._z / 255.0f * 2.0f - 1.0f;
+                    spanRawTangents[i].X = (byte)_vertexData_List_BSVD[i].Tangent.X / 255.0f * 2.0f - 1.0f;
+                    spanRawTangents[i].Y = (byte)_vertexData_List_BSVD[i].Tangent.Y / 255.0f * 2.0f - 1.0f;
+                    spanRawTangents[i].Z = (byte)_vertexData_List_BSVD[i].Tangent.Z / 255.0f * 2.0f - 1.0f;
                 }
             }
 
@@ -1219,9 +1219,9 @@ namespace NiflySharp.Blocks
             {
                 for (ushort i = 0; i < _numVertices; i++)
                 {
-                    spanRawBiTangents[i].X = (byte)_vertexData_List_BSVDSSE[i]._bitangentX;
-                    spanRawBiTangents[i].Y = (byte)_vertexData_List_BSVDSSE[i]._bitangentY / 255.0f * 2.0f - 1.0f;
-                    spanRawBiTangents[i].Z = (byte)_vertexData_List_BSVDSSE[i]._bitangentZ / 255.0f * 2.0f - 1.0f;
+                    spanRawBiTangents[i].X = (byte)_vertexData_List_BSVDSSE[i].BitangentX;
+                    spanRawBiTangents[i].Y = (byte)_vertexData_List_BSVDSSE[i].BitangentY / 255.0f * 2.0f - 1.0f;
+                    spanRawBiTangents[i].Z = (byte)_vertexData_List_BSVDSSE[i].BitangentZ / 255.0f * 2.0f - 1.0f;
                 }
             }
             else if (_vertexData_List_BSVD != null)
@@ -1230,18 +1230,18 @@ namespace NiflySharp.Blocks
                 {
                     for (ushort i = 0; i < _numVertices; i++)
                     {
-                        spanRawBiTangents[i].X = (byte)_vertexData_List_BSVD[i]._bitangentX_fl;
-                        spanRawBiTangents[i].Y = (byte)_vertexData_List_BSVD[i]._bitangentY / 255.0f * 2.0f - 1.0f;
-                        spanRawBiTangents[i].Z = (byte)_vertexData_List_BSVD[i]._bitangentZ / 255.0f * 2.0f - 1.0f;
+                        spanRawBiTangents[i].X = (byte)_vertexData_List_BSVD[i].BitangentX;
+                        spanRawBiTangents[i].Y = (byte)_vertexData_List_BSVD[i].BitangentY / 255.0f * 2.0f - 1.0f;
+                        spanRawBiTangents[i].Z = (byte)_vertexData_List_BSVD[i].BitangentZ / 255.0f * 2.0f - 1.0f;
                     }
                 }
                 else
                 {
                     for (ushort i = 0; i < _numVertices; i++)
                     {
-                        spanRawBiTangents[i].X = (float)_vertexData_List_BSVD[i]._bitangentX_SH;
-                        spanRawBiTangents[i].Y = (byte)_vertexData_List_BSVD[i]._bitangentY / 255.0f * 2.0f - 1.0f;
-                        spanRawBiTangents[i].Z = (byte)_vertexData_List_BSVD[i]._bitangentZ / 255.0f * 2.0f - 1.0f;
+                        spanRawBiTangents[i].X = (float)_vertexData_List_BSVD[i].BitangentXHalf;
+                        spanRawBiTangents[i].Y = (byte)_vertexData_List_BSVD[i].BitangentY / 255.0f * 2.0f - 1.0f;
+                        spanRawBiTangents[i].Z = (byte)_vertexData_List_BSVD[i].BitangentZ / 255.0f * 2.0f - 1.0f;
                     }
                 }
             }
@@ -1265,16 +1265,16 @@ namespace NiflySharp.Blocks
             {
                 for (ushort i = 0; i < _numVertices; i++)
                 {
-                    spanRawUVs[i]._u = (float)_vertexData_List_BSVDSSE[i]._uV._u;
-                    spanRawUVs[i]._v = (float)_vertexData_List_BSVDSSE[i]._uV._v;
+                    spanRawUVs[i].U = (float)_vertexData_List_BSVDSSE[i].UV.U;
+                    spanRawUVs[i].V = (float)_vertexData_List_BSVDSSE[i].UV.V;
                 }
             }
             else if (_vertexData_List_BSVD != null)
             {
                 for (ushort i = 0; i < _numVertices; i++)
                 {
-                    spanRawUVs[i]._u = (float)_vertexData_List_BSVD[i]._uV._u;
-                    spanRawUVs[i]._v = (float)_vertexData_List_BSVD[i]._uV._v;
+                    spanRawUVs[i].U = (float)_vertexData_List_BSVD[i].UV.U;
+                    spanRawUVs[i].V = (float)_vertexData_List_BSVD[i].UV.V;
                 }
             }
 
@@ -1297,20 +1297,20 @@ namespace NiflySharp.Blocks
             {
                 for (ushort i = 0; i < _numVertices; i++)
                 {
-                    spanRawColors[i]._r = _vertexData_List_BSVDSSE[i]._vertexColors._r / 255.0f;
-                    spanRawColors[i]._g = _vertexData_List_BSVDSSE[i]._vertexColors._g / 255.0f;
-                    spanRawColors[i]._b = _vertexData_List_BSVDSSE[i]._vertexColors._b / 255.0f;
-                    spanRawColors[i]._a = _vertexData_List_BSVDSSE[i]._vertexColors._a / 255.0f;
+                    spanRawColors[i].R = _vertexData_List_BSVDSSE[i].VertexColors.R / 255.0f;
+                    spanRawColors[i].G = _vertexData_List_BSVDSSE[i].VertexColors.G / 255.0f;
+                    spanRawColors[i].B = _vertexData_List_BSVDSSE[i].VertexColors.B / 255.0f;
+                    spanRawColors[i].A = _vertexData_List_BSVDSSE[i].VertexColors.A / 255.0f;
                 }
             }
             else if (_vertexData_List_BSVD != null)
             {
                 for (ushort i = 0; i < _numVertices; i++)
                 {
-                    spanRawColors[i]._r = _vertexData_List_BSVD[i]._vertexColors._r / 255.0f;
-                    spanRawColors[i]._g = _vertexData_List_BSVD[i]._vertexColors._g / 255.0f;
-                    spanRawColors[i]._b = _vertexData_List_BSVD[i]._vertexColors._b / 255.0f;
-                    spanRawColors[i]._a = _vertexData_List_BSVD[i]._vertexColors._a / 255.0f;
+                    spanRawColors[i].R = _vertexData_List_BSVD[i].VertexColors.R / 255.0f;
+                    spanRawColors[i].G = _vertexData_List_BSVD[i].VertexColors.G / 255.0f;
+                    spanRawColors[i].B = _vertexData_List_BSVD[i].VertexColors.B / 255.0f;
+                    spanRawColors[i].A = _vertexData_List_BSVD[i].VertexColors.A / 255.0f;
                 }
             }
 
@@ -1332,12 +1332,12 @@ namespace NiflySharp.Blocks
             if (_vertexData_List_BSVDSSE != null)
             {
                 for (ushort i = 0; i < _numVertices; i++)
-                    spanRawEyeData[i] = _vertexData_List_BSVDSSE[i]._eyeData;
+                    spanRawEyeData[i] = _vertexData_List_BSVDSSE[i].EyeData;
             }
             else if (_vertexData_List_BSVD != null)
             {
                 for (ushort i = 0; i < _numVertices; i++)
-                    spanRawEyeData[i] = _vertexData_List_BSVD[i]._eyeData;
+                    spanRawEyeData[i] = _vertexData_List_BSVD[i].EyeData;
             }
 
             return rawEyeData;

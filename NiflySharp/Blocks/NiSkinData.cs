@@ -16,9 +16,9 @@ namespace NiflySharp.Blocks
             foreach (ref var bone in boneListSpan)
             {
                 if (!_hasVertexWeights.GetValueOrDefault())
-                    bone._numVertices = 0;
+                    bone.NumVertices = 0;
 
-                bone._vertexWeights = bone._vertexWeights.Resize(bone._numVertices);
+                bone.VertexWeights = bone.VertexWeights.Resize(bone.NumVertices);
             }
         }
 
@@ -32,9 +32,9 @@ namespace NiflySharp.Blocks
             foreach (ref var bone in boneListSpan)
             {
                 if (!_hasVertexWeights.GetValueOrDefault())
-                    bone._numVertices = 0;
+                    bone.NumVertices = 0;
 
-                bone._vertexWeights = bone._vertexWeights.Resize(bone._numVertices);
+                bone.VertexWeights = bone.VertexWeights.Resize(bone.NumVertices);
             }
         }
     }

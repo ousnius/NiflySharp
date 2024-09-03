@@ -123,7 +123,7 @@ namespace NiflySharp.Blocks
 
         public NiGeometry()
         {
-            _materialData._materialNeedsUpdate = false;
+            _materialData.MaterialNeedsUpdate = false;
         }
 
         public void SetTriangles(NiVersion version, List<Triangle> triangles)

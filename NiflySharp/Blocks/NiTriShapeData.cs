@@ -79,9 +79,9 @@ namespace NiflySharp.Blocks
 
             foreach (var triangle in _triangles)
             {
-                int i1 = triangle._v1;
-                int i2 = triangle._v2;
-                int i3 = triangle._v3;
+                int i1 = triangle.V1;
+                int i2 = triangle.V2;
+                int i3 = triangle.V3;
 
                 if (i1 >= _numVertices || i2 >= _numVertices || i3 >= _numVertices)
                     continue;
@@ -102,10 +102,10 @@ namespace NiflySharp.Blocks
                 float z1 = v2.Z - v1.Z;
                 float z2 = v3.Z - v1.Z;
 
-                float s1 = w2._u - w1._u;
-                float s2 = w3._u - w1._u;
-                float t1 = w2._v - w1._v;
-                float t2 = w3._v - w1._v;
+                float s1 = w2.U - w1.U;
+                float s2 = w3.U - w1.U;
+                float t1 = w2.V - w1.V;
+                float t2 = w3.V - w1.V;
 
                 float r = s1 * t2 - s2 * t1;
                 r = r >= 0.0f ? +1.0f : -1.0f;

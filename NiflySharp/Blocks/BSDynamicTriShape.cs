@@ -44,23 +44,23 @@ namespace NiflySharp.Blocks
 
                     if (IsFullPrecision)
                     {
-                        dynamicData.X = vertData._vertex_V3.X;
-                        dynamicData.Y = vertData._vertex_V3.Y;
-                        dynamicData.Z = vertData._vertex_V3.Z;
-                        dynamicData.W = vertData.BitangentX_fl;
+                        dynamicData.X = vertData.Vertex.X;
+                        dynamicData.Y = vertData.Vertex.Y;
+                        dynamicData.Z = vertData.Vertex.Z;
+                        dynamicData.W = vertData.BitangentX;
                     }
                     else
                     {
-                        dynamicData.X = (float)vertData._vertex_HV3._x;
-                        dynamicData.Y = (float)vertData._vertex_HV3._y;
-                        dynamicData.Z = (float)vertData._vertex_HV3._z;
-                        dynamicData.W = (float)vertData.BitangentX_SH;
+                        dynamicData.X = (float)vertData.VertexHalf.X;
+                        dynamicData.Y = (float)vertData.VertexHalf.Y;
+                        dynamicData.Z = (float)vertData.VertexHalf.Z;
+                        dynamicData.W = (float)vertData.BitangentXHalf;
                     }
 
                     if (dynamicData.X > 0.0f)
-                        vertData._eyeData = 1.0f;
+                        vertData.EyeData = 1.0f;
                     else
-                        vertData._eyeData = 0.0f;
+                        vertData.EyeData = 0.0f;
                 }
             }
             else if (_vertexData_List_BSVDSSE != null)
@@ -72,15 +72,15 @@ namespace NiflySharp.Blocks
                     ref var dynamicData = ref spanDynamicData[i];
                     ref var vertData = ref spanVertexData[i];
 
-                    dynamicData.X = vertData._vertex.X;
-                    dynamicData.Y = vertData._vertex.Y;
-                    dynamicData.Z = vertData._vertex.Z;
-                    dynamicData.W = vertData._bitangentX;
+                    dynamicData.X = vertData.Vertex.X;
+                    dynamicData.Y = vertData.Vertex.Y;
+                    dynamicData.Z = vertData.Vertex.Z;
+                    dynamicData.W = vertData.BitangentX;
 
                     if (dynamicData.X > 0.0f)
-                        vertData._eyeData = 1.0f;
+                        vertData.EyeData = 1.0f;
                     else
-                        vertData._eyeData = 0.0f;
+                        vertData.EyeData = 0.0f;
                 }
             }
         }
