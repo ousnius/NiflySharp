@@ -6,11 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="nif.xml" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <AdditionalFiles Include="nif.xml" />
+    <AdditionalFiles Include="..\nifxml\nif.xml" />
   </ItemGroup>
 
   <ItemGroup>

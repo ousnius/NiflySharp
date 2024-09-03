@@ -807,6 +807,10 @@ namespace NiflySharp.Bitfields
                     foreach (var token in nifXml.Tokens.Where(t => t.GetAttributesAsArray().Contains("length")).SelectMany(t => t.Entries))
                         lengthString = lengthString.Replace(token.Token, token.String);
 
+                    // Handle #ARG1# as #ARG# for now
+                    if (lengthString == "#ARG1#")
+                        lengthString = "#ARG#";
+
                     // Replace #ARG# with accessible property in stream object
                     if (lengthString == "#ARG#")
                         lengthString = lengthString.Replace("#ARG#", "stream.Argument");
@@ -838,6 +842,10 @@ namespace NiflySharp.Bitfields
                         // Replace tokens that apply to 'width'
                         foreach (var token in nifXml.Tokens.Where(t => t.GetAttributesAsArray().Contains("width")).SelectMany(t => t.Entries))
                             widthString = widthString.Replace(token.Token, token.String);
+
+                        // Handle #ARG1# as #ARG# for now
+                        if (widthString == "#ARG1#")
+                            widthString = "#ARG#";
 
                         // Replace #ARG# with accessible property in stream object
                         if (widthString == "#ARG#")
