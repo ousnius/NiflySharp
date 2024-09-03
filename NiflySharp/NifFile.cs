@@ -49,6 +49,19 @@ namespace NiflySharp
         public NifFile() { }
 
         /// <summary>
+        /// Create empty file using the version of <paramref name="file"/>, <paramref name="user"/> and <paramref name="stream"/>.
+        /// </summary>
+        /// <param name="file">File version enum</param>
+        /// <param name="user">User version</param>
+        /// <param name="stream">Stream version</param>
+        /// <param name="withRootNode">Add a root node</param>
+        public NifFile(NiFileVersion file, uint user, uint stream, bool withRootNode = false)
+        {
+            var version = new NiVersion(file, user, stream);
+            Create(version, withRootNode);
+        }
+
+        /// <summary>
         /// Create empty file using the version <paramref name="version"/>.
         /// </summary>
         /// <param name="version">Version</param>
