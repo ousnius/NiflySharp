@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="nif.xml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AdditionalFiles Include="nif.xml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="miniball-devel0" Version="1.0.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\NiflySharp.Generator\NiflySharp.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+</Project>
