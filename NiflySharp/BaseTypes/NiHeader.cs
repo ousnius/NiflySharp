@@ -720,10 +720,10 @@ namespace NiflySharp
 
             foreach (var block in blocks)
             {
-                foreach (var r in block.References.Where(r => r != null && !r.IsEmpty()))
+                foreach (var r in block.References.Where(r => r != null && !r.IsEmpty() && r.Index < newOrder.Count))
                     r.Index = newOrder[r.Index];
 
-                foreach (var p in block.Pointers.Where(p => p != null && !p.IsEmpty()))
+                foreach (var p in block.Pointers.Where(p => p != null && !p.IsEmpty() && p.Index < newOrder.Count))
                     p.Index = newOrder[p.Index];
             }
         }
