@@ -8,6 +8,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace NiflySharp
@@ -348,15 +350,17 @@ namespace NiflySharp
         }
 
         /// <summary>
-        /// FIXME
+        /// Prepare internal data after loading.
         /// </summary>
         public void PrepareData()
         {
             Header.FillStringRefs(Blocks);
             LinkGeometryData();
+
+            // FIXME: Make this an option?
             //TrimTexturePaths();
 
-            foreach (var shape in GetShapes())
+            foreach (var shape in GetShapes().ToList())
             {
                 if (Header.Version.IsSSE())
                 {
@@ -431,25 +435,26 @@ namespace NiflySharp
                     }
                 }
 
-                /* FIXME
-                if (Header.Version.IsOB())
+                if (Header.Version.IsOB() && shape.GeometryData != null)
                 {
                     // Move tangents and bitangents from binary extra data to shape
-			        std::vector<Vector3> tangents;
-			        std::vector<Vector3> bitangents;
-			        if (GetBinaryTangentData(shape, &tangents, &bitangents)) {
-				        SetTangentsForShape(shape, tangents);
-				        SetBitangentsForShape(shape, bitangents);
-			        }
+                    if (GetBinaryTangentData(shape, out var tangents, out var bitangents) != null)
+                    {
+                        shape.GeometryData.Tangents = tangents;
+                        shape.GeometryData.Bitangents = bitangents;
+
+                        // Remove tangents flag again but keep data stored
+                        shape.GeometryData.SetTangentsFlag(false);
+                    }
                 }
-                */
             }
 
+            // FIXME: Make this an option?
             //RemoveInvalidTris();
         }
 
         /// <summary>
-        /// FIXME
+        /// Finalize internal data before saving.
         /// </summary>
         public void FinalizeData()
         {
@@ -466,7 +471,7 @@ namespace NiflySharp
                 bsDynTriShape.CalcDynamicData();
             }
 
-            foreach (var shape in GetShapes())
+            foreach (var shape in GetShapes().ToList())
             {
                 if (shape is BSTriShape bsTriShape)
                 {
@@ -497,22 +502,14 @@ namespace NiflySharp
                     }
                 }
 
-                /* FIXME
-                if (Header.Version.IsOB())
+                if (Header.Version.IsOB() && shape.GeometryData != null)
                 {
                     // Move tangents and bitangents from shape back to binary extra data
-                    if (shape.HasTangents)
-                    {
-				        auto tangents = GetTangentsForShape(shape);
-				        auto bitangents = GetBitangentsForShape(shape);
-				        SetBinaryTangentData(shape, tangents, bitangents);
-                    }
+                    if (shape.GeometryData.Tangents?.Count > 0 && shape.GeometryData.Bitangents?.Count > 0)
+                        SetBinaryTangentData(shape, shape.GeometryData.Tangents, shape.GeometryData.Bitangents);
                     else
-                    {
                         DeleteBinaryTangentData(shape);
-                    }
                 }
-                */
             }
 
             Header.UpdateHeaderStrings(Blocks, HasUnknownBlocks);
@@ -2278,6 +2275,143 @@ namespace NiflySharp
                     flags |= BSPartFlag.PF_START_NET_BONESET;
 
                 partitionsSpan[i].PartFlag = flags;
+            }
+        }
+
+        /// <summary>
+        /// Retrieves tangent and bitangent data from a NiBinaryExtraData block linked to shape <paramref name="shape"/>.
+        /// Extra data needs to be named "Tangent space (binormal &amp; tangent vectors)".
+        /// </summary>
+        /// <param name="shape">Shape</param>
+        /// <param name="tangents">Retrieved tangents</param>
+        /// <param name="bitangents">Retrieved bitangents</param>
+        /// <returns>NiBinaryExtraData block or null</returns>
+        public NiBinaryExtraData GetBinaryTangentData(INiShape shape, out List<Vector3> tangents, out List<Vector3> bitangents)
+        {
+            ArgumentNullException.ThrowIfNull(shape);
+
+            tangents = [];
+            bitangents = [];
+
+            ushort numVerts = shape.VertexCount;
+
+            foreach (var binaryData in shape.ExtraDataList
+                .GetBlocks(this)
+                .OfType<NiBinaryExtraData>()
+                .Where(b => b.Name.String == "Tangent space (binormal & tangent vectors)"))
+            {
+                uint dataSize = (uint)(numVerts * 4 * 3 * 2);
+                if (binaryData.BinaryData.DataSize == dataSize)
+                {
+                    var data = binaryData.BinaryData.Data.ToArray();
+                    ref var vectorData = ref Unsafe.As<byte[], Vector3[]>(ref data);
+
+                    int dataIndex = 0;
+
+                    tangents.Resize(numVerts);
+
+                    for (ushort i = 0; i < numVerts; i++)
+                    {
+                        tangents[i] = vectorData[dataIndex];
+                        ++dataIndex;
+                    }
+
+                    bitangents.Resize(numVerts);
+
+                    for (ushort i = 0; i < numVerts; i++)
+                    {
+                        bitangents[i] = vectorData[dataIndex];
+                        ++dataIndex;
+                    }
+                }
+
+                return binaryData;
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Copy tangent and bitangent data into a NiBinaryExtraData block linked to shape <paramref name="shape"/>.
+        /// Extra data will be named "Tangent space (binormal &amp; tangent vectors)".
+        /// </summary>
+        /// <param name="shape">Shape</param>
+        /// <param name="tangents">Tangents</param>
+        /// <param name="bitangents">Bitangents</param>
+        public void SetBinaryTangentData(INiShape shape, List<Vector3> tangents, List<Vector3> bitangents)
+        {
+            ArgumentNullException.ThrowIfNull(shape);
+            ArgumentNullException.ThrowIfNull(tangents);
+            ArgumentNullException.ThrowIfNull(bitangents);
+
+            ushort numVerts = shape.VertexCount;
+            if (tangents.Count != numVerts)
+                ArgumentOutOfRangeException.ThrowIfNotEqual(tangents.Count, numVerts, nameof(tangents));
+            if (bitangents.Count != numVerts)
+                ArgumentOutOfRangeException.ThrowIfNotEqual(bitangents.Count, numVerts, nameof(bitangents));
+
+            // Find existing fitting NiBinaryExtraData block
+            var binaryData = shape.ExtraDataList
+                .GetBlocks(this)
+                .OfType<NiBinaryExtraData>()
+                .Where(b => b.Name.String == "Tangent space (binormal & tangent vectors)")
+                .FirstOrDefault();
+
+            if (binaryData == null)
+            {
+                // Add new NiBinaryExtraData block
+                binaryData = new NiBinaryExtraData
+                {
+                    Name = new NiStringRef("Tangent space (binormal & tangent vectors)")
+                };
+
+                int binaryDataId = AddBlock(binaryData);
+                shape.ExtraDataList ??= new NiBlockRefArray<NiExtraData>();
+                shape.ExtraDataList.AddBlockRef(binaryDataId);
+            }
+
+            uint dataSize = (uint)(numVerts * 4 * 3 * 2);
+
+            var data = new byte[dataSize];
+            ref var vectorData = ref Unsafe.As<byte[], Vector3[]>(ref data);
+
+            int dataIndex = 0;
+
+            for (ushort i = 0; i < numVerts; i++)
+            {
+                vectorData[dataIndex] = tangents[i];
+                ++dataIndex;
+            }
+
+            for (ushort i = 0; i < numVerts; i++)
+            {
+                vectorData[dataIndex] = bitangents[i];
+                ++dataIndex;
+            }
+
+            binaryData.BinaryData = new ByteArray()
+            {
+                DataSize = dataSize,
+                Data = [.. data]
+            };
+        }
+
+        /// <summary>
+        /// Deletes NiBinaryExtraData block containing tangent and bitangent data linked to shape <paramref name="shape"/>.
+        /// Extra data needs to be named "Tangent space (binormal &amp; tangent vectors)".
+        /// </summary>
+        /// <param name="shape">Shape</param>
+        public void DeleteBinaryTangentData(INiShape shape)
+        {
+            ArgumentNullException.ThrowIfNull(shape);
+
+            foreach (var binaryData in shape.ExtraDataList
+                .GetBlocks(this)
+                .OfType<NiBinaryExtraData>()
+                .Where(b => b.Name.String == "Tangent space (binormal & tangent vectors)")
+                .ToArray())
+            {
+                RemoveBlock(binaryData);
             }
         }
     }

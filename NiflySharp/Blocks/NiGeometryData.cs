@@ -78,11 +78,25 @@ namespace NiflySharp.Blocks
 
         public bool HasUVs
         {
-            get => _bSDataFlags != null && _bSDataFlags.HasUV > 0;
+            get =>
+                (_bSDataFlags != null && _bSDataFlags.HasUV > 0) ||
+                (_dataFlags != null && _dataFlags.NumUVSets > 0);
+
             set
             {
-                _bSDataFlags ??= new Bitfields.BSGeometryDataFlags();
-                _bSDataFlags.HasUV = value ? 1 : 0;
+                if (_dataFlags != null && value && _dataFlags.NumUVSets == 0)
+                {
+                    _dataFlags.NumUVSets = 1;
+                }
+                else if (_dataFlags != null && !value)
+                {
+                    _dataFlags.NumUVSets = 0;
+                }
+                else
+                {
+                    _bSDataFlags ??= new Bitfields.BSGeometryDataFlags();
+                    _bSDataFlags.HasUV = value ? 1 : 0;
+                }
 
                 if (value)
                     _uVSets = _uVSets.Resize(_numVertices);
@@ -93,11 +107,22 @@ namespace NiflySharp.Blocks
 
         public bool HasTangents
         {
-            get => _bSDataFlags != null && _bSDataFlags.HasTangents;
+            get =>
+                (_bSDataFlags != null && _bSDataFlags.HasTangents) ||
+                (_dataFlags != null && _dataFlags.NBTMethod != Enums.NiNBTMethod.NBT_METHOD_NONE);
+
             set
             {
-                _bSDataFlags ??= new Bitfields.BSGeometryDataFlags();
-                _bSDataFlags.HasTangents = value;
+                if (_dataFlags != null && !value)
+                {
+                    // Only remove NBT method for false and don't set it for true
+                    _dataFlags.NBTMethod = Enums.NiNBTMethod.NBT_METHOD_NONE;
+                }
+                else
+                {
+                    _bSDataFlags ??= new Bitfields.BSGeometryDataFlags();
+                    _bSDataFlags.HasTangents = value;
+                }
 
                 if (value)
                 {
@@ -110,6 +135,15 @@ namespace NiflySharp.Blocks
                     _bitangents?.Clear();
                 }
             }
+        }
+
+        public void SetTangentsFlag(bool hasTangents)
+        {
+            if (_dataFlags != null)
+                _dataFlags.NBTMethod = hasTangents ? Enums.NiNBTMethod.NBT_METHOD_NDL : Enums.NiNBTMethod.NBT_METHOD_NONE;
+
+            if (_bSDataFlags != null)
+                _bSDataFlags.HasTangents = hasTangents;
         }
 
         public List<Vector3> Vertices
