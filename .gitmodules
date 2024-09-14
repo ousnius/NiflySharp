@@ -1,4 +1,4 @@
 [submodule "nifxml"]
 	path = nifxml
-	url = https://github.com/ousnius/nifxml
-	branch = bool-conditions
+	url = https://github.com/niftools/nifxml
+	branch = develop
