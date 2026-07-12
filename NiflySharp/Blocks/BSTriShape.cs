@@ -513,15 +513,25 @@ namespace NiflySharp.Blocks
         }
 
         /// <summary>
-        /// Sets mesh vertex positions and enables the vertices flag.
+        /// Sets mesh vertex positions. Enables the vertices flag, except on <see cref="BSDynamicTriShape"/>.
         /// </summary>
+        /// <remarks>
+        /// A <see cref="BSDynamicTriShape"/> must keep the <see cref="VertexAttribute.Vertex"/> flag off:
+        /// its positions live only in the dynamic vertex array, never in the static vertex data. That is
+        /// why its constructor clears the flag, and why <see cref="CalcDataSizes"/> assumes it is off.
+        /// Setting it would duplicate the positions into the static buffer, which no vanilla file does and
+        /// which breaks facial animation in-game (the head renders correctly but stops moving).
+        /// The static vertex data is still written below: <see cref="NifFile.FinalizeData"/> calls
+        /// <see cref="BSDynamicTriShape.CalcDynamicData"/>, which rebuilds the dynamic array from it.
+        /// </remarks>
         /// <param name="vertices">Positions for all vertices</param>
         public void SetVertexPositions(List<Vector3> vertices)
         {
             if (vertices.Count != _numVertices)
                 return;
 
-            HasVertices = true;
+            if (this is not BSDynamicTriShape)
+                HasVertices = true;
 
             rawVertexPositions = rawVertexPositions.Resize(_numVertices);
             var rawVerticesSpan = CollectionsMarshal.AsSpan(rawVertexPositions);
