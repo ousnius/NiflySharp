@@ -126,7 +126,8 @@ namespace NiflySharp.Blocks
             {
                 if (value)
                 {
-                    _vertexDesc.VertexAttributes |= VertexAttribute.Vertex;
+                    if (this is not BSDynamicTriShape)
+                        _vertexDesc.VertexAttributes |= VertexAttribute.Vertex;
 
                     if (_vertexData_List_BSVDSSE != null)
                         _vertexData_List_BSVDSSE.Resize(_numVertices);
@@ -517,12 +518,7 @@ namespace NiflySharp.Blocks
         /// </summary>
         /// <remarks>
         /// A <see cref="BSDynamicTriShape"/> must keep the <see cref="VertexAttribute.Vertex"/> flag off:
-        /// its positions live only in the dynamic vertex array, never in the static vertex data. That is
-        /// why its constructor clears the flag, and why <see cref="CalcDataSizes"/> assumes it is off.
-        /// Setting it would duplicate the positions into the static buffer, which no vanilla file does and
-        /// which breaks facial animation in-game (the head renders correctly but stops moving).
-        /// The static vertex data is still written below: <see cref="NifFile.FinalizeData"/> calls
-        /// <see cref="BSDynamicTriShape.CalcDynamicData"/>, which rebuilds the dynamic array from it.
+        /// its positions live only in the dynamic vertex array, never in the static vertex data.
         /// </remarks>
         /// <param name="vertices">Positions for all vertices</param>
         public void SetVertexPositions(List<Vector3> vertices)
@@ -530,8 +526,7 @@ namespace NiflySharp.Blocks
             if (vertices.Count != _numVertices)
                 return;
 
-            if (this is not BSDynamicTriShape)
-                HasVertices = true;
+            HasVertices = true;
 
             rawVertexPositions = rawVertexPositions.Resize(_numVertices);
             var rawVerticesSpan = CollectionsMarshal.AsSpan(rawVertexPositions);
