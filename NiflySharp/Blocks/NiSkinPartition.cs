@@ -51,15 +51,15 @@ namespace NiflySharp.Blocks
         partial void CopyFromExtra(NiSkinPartition other)
         {
             mappedIndices = other.mappedIndices;
-            triParts = other.triParts == null ? [] : new List<int>(other.triParts);
+            triParts = new List<int>(other.triParts);
         }
 
         public new void BeforeSync(NiStreamReversible stream)
         {
-            if (stream.CurrentMode == NiStreamReversible.Mode.Read)
+            if (stream.CurrentMode == NiStreamReversible.Mode.Read &&
+                stream.Version.UserVersion >= 12 && stream.Version.StreamVersion == 100)
             {
-                if (stream.Version.UserVersion >= 12 && stream.Version.StreamVersion == 100)
-                    mappedIndices = false;
+                mappedIndices = false;
             }
 
             if (stream.CurrentMode == NiStreamReversible.Mode.Write)

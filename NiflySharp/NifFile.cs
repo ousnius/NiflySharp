@@ -2562,16 +2562,17 @@ namespace NiflySharp
 
             // Make a list of the bones used by each partition.
             // If any partition has too many bones, split it.
+            // Every partition needs its own set, including partitions without any
+            // triangles. They're never filled below and would otherwise stay null.
             var partBones = new List<HashSet<int>>(skinPart.Partitions.Count);
-            partBones.Resize(skinPart.Partitions.Count);
+            for (int partInd = 0; partInd < skinPart.Partitions.Count; ++partInd)
+                partBones.Add([]);
 
             for (int triIndex = 0; triIndex < tris.Count; ++triIndex)
             {
                 int partInd = skinPart.triParts[triIndex];
                 if (partInd < 0)
                     continue;
-
-                partBones[partInd] ??= [];
 
                 var tri = tris[triIndex];
 
