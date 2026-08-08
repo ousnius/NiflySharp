@@ -1,4 +1,5 @@
 using NiflySharp.Blocks;
+using NiflySharp.Structs;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -281,6 +282,50 @@ namespace NiflySharp.Test
             var fileInfoOutput = new FileInfo($"{OutputDirectory}/{TestName}.nif");
             var fileInfoExpected = new FileInfo($"{ExpectedDirectory}/{TestName}.nif");
             Assert.True(FilesAreEqual(fileInfoOutput, fileInfoExpected));
+        }
+
+        [Fact(DisplayName = "Keep NiSkinData bone weights in memory when saving without weights (SE)")]
+        public void SaveKeepsNoNiSkinDataWeights_SE()
+        {
+            var nif = new NifFile();
+            Assert.Equal(0, nif.Load($"{AssetsDirectory}/V20.2.0.7/12/100/NoNiSkinDataWeights.nif"));
+
+            var skinData = nif.Blocks.OfType<NiSkinData>().FirstOrDefault();
+            Assert.NotNull(skinData);
+            Assert.False(skinData.HasVertexWeights.GetValueOrDefault());
+            Assert.NotEmpty(skinData.BoneList);
+
+            // Give every bone weights the file can't hold, they have to survive the save
+            for (int i = 0; i < skinData.BoneList.Count; i++)
+            {
+                var bone = skinData.BoneList[i];
+                bone.VertexWeights = [
+                    new BoneVertData { Index = 0, Weight = 1.0f },
+                    new BoneVertData { Index = 1, Weight = 0.5f },
+                    new BoneVertData { Index = 2, Weight = 0.25f }];
+                bone.NumVertices = (ushort)bone.VertexWeights.Count;
+                skinData.BoneList[i] = bone;
+            }
+
+            byte[] expected = File.ReadAllBytes($"{ExpectedDirectory}/LoadAndSave_NoNiSkinDataWeights_SE.nif");
+
+            // Twice, because a save must not depend on the state a previous one left behind
+            for (int save = 0; save < 2; save++)
+            {
+                using var output = new MemoryStream();
+                Assert.Equal(0, nif.Save(output));
+
+                // The flag is false, so the file still gets zero counts and no weights at all
+                Assert.True(expected.AsSpan().SequenceEqual(output.ToArray()));
+
+                Assert.False(skinData.HasVertexWeights.GetValueOrDefault());
+                Assert.All(skinData.BoneList, bone =>
+                {
+                    Assert.Equal(3, bone.NumVertices);
+                    Assert.Equal(3, bone.VertexWeights.Count);
+                    Assert.Equal(0.5f, bone.VertexWeights[1].Weight);
+                });
+            }
         }
 
         [Fact(DisplayName = "Load and save animated file (LE)")]
@@ -751,6 +796,42 @@ namespace NiflySharp.Test
 
                 Assert.True(original.AsSpan().SequenceEqual(output.ToArray()), fileName);
             }
+        }
+
+        [Fact(DisplayName = "Write NiSkinData bone weights regardless of the flag (MW)")]
+        public void WriteNoNiSkinDataWeights_MW()
+        {
+            // The flag is not part of the file below version 4.2.1.0, where weights are always present
+            byte[] original = File.ReadAllBytes($"{MorrowindDirectory}/Skinned.nif");
+
+            var nif = new NifFile();
+            using var input = new MemoryStream(original, false);
+            Assert.Equal(0, nif.Load(input));
+
+            var skinData = nif.Blocks.OfType<NiSkinData>().FirstOrDefault();
+            Assert.NotNull(skinData);
+            Assert.NotEmpty(skinData.BoneList);
+            Assert.All(skinData.BoneList, bone => Assert.NotEmpty(bone.VertexWeights));
+
+            skinData.HasVertexWeights = false;
+
+            var saveOptions = new NifFileSaveOptions
+            {
+                RemoveUnreferencedBlocks = false,
+                SortBlocks = false,
+                UpdateBounds = false
+            };
+
+            using var output = new MemoryStream();
+            Assert.Equal(0, nif.Save(output, saveOptions));
+
+            // Clearing the flag must not drop the counts or the weights, from the file or from memory
+            Assert.True(original.AsSpan().SequenceEqual(output.ToArray()));
+            Assert.All(skinData.BoneList, bone =>
+            {
+                Assert.NotEqual(0, bone.NumVertices);
+                Assert.Equal(bone.NumVertices, bone.VertexWeights.Count);
+            });
         }
 
         [Fact(DisplayName = "Read blocks of static file (MW)")]
