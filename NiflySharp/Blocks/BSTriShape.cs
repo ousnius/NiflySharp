@@ -46,6 +46,14 @@ namespace NiflySharp.Blocks
         internal List<Color4> rawVertexColors;      // temporary copy filled by UpdateRawColors function
         internal List<float> rawEyeData;            // temporary copy filled by UpdateRawEyeData function
 
+        // Kept by BeforeSync, put back by AfterSync
+        private bool _countersStashed;
+        private ushort _stashNumVertices;
+        private uint _stashNumTriangles_ui;
+        private ushort _stashNumTriangles_us;
+        private uint _stashDataSize;
+        private uint _stashParticleDataSize;
+
         public BSTriShape()
         {
             _boundMinMax = new float[6];
@@ -71,6 +79,15 @@ namespace NiflySharp.Blocks
 
                 if (stream.Version.IsSSE() && IsSkinned)
                 {
+                    RestoreStashedCounters();
+
+                    _stashNumVertices = _numVertices;
+                    _stashNumTriangles_ui = _numTriangles_ui;
+                    _stashNumTriangles_us = _numTriangles_us;
+                    _stashDataSize = _dataSize;
+                    _stashParticleDataSize = _particleDataSize;
+                    _countersStashed = true;
+
                     // Triangle and vertex data is in partition instead
                     _numVertices = 0;
                     _numTriangles_ui = 0;
@@ -93,6 +110,28 @@ namespace NiflySharp.Blocks
                     }
                 }
             }
+        }
+
+        public new void AfterSync(NiStreamReversible stream)
+        {
+            RestoreStashedCounters();
+        }
+
+        private void RestoreStashedCounters()
+        {
+            if (!_countersStashed)
+                return;
+
+            _countersStashed = false;
+
+            // BSDynamicTriShape keeps the count BeforeSync assigned from its dynamic vertices
+            if (this is not BSDynamicTriShape)
+                _numVertices = _stashNumVertices;
+
+            _numTriangles_ui = _stashNumTriangles_ui;
+            _numTriangles_us = _stashNumTriangles_us;
+            _dataSize = _stashDataSize;
+            _particleDataSize = _stashParticleDataSize;
         }
 
         public void UpdateBounds()
