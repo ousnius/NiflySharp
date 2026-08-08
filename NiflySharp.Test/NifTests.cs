@@ -1,4 +1,5 @@
 using NiflySharp.Blocks;
+using NiflySharp.Structs;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -253,6 +254,113 @@ namespace NiflySharp.Test
             var fileInfoOutput = new FileInfo($"{OutputDirectory}/{TestName}.nif");
             var fileInfoExpected = new FileInfo($"{ExpectedDirectory}/{TestName}.nif");
             Assert.True(FilesAreEqual(fileInfoOutput, fileInfoExpected));
+        }
+
+        /// <summary>
+        /// Flattens triangles into their vertex indices, so a failed comparison
+        /// shows the differing index instead of an opaque list of triangles.
+        /// </summary>
+        private static IEnumerable<ushort> VertexIndices(IEnumerable<Triangle> triangles)
+        {
+            return triangles.SelectMany(tri => new[] { tri.V1, tri.V2, tri.V3 });
+        }
+
+        /// <summary>
+        /// Replaces the shape's single skin partition with two partitions, giving the first
+        /// one the triangles up to <paramref name="splitAt"/> and the second one the rest.
+        /// The shipped fixtures only have one partition with an identity vertex map, where
+        /// indices into the map and into the shape are the same.
+        /// </summary>
+        private static NiSkinPartition SplitSkinPartitionInTwo(NifFile nif, INiShape shape, int splitAt)
+        {
+            var skinInst = nif.GetBlock<NiSkinInstance>(shape.SkinInstanceRef);
+            Assert.NotNull(skinInst);
+
+            var skinPart = nif.GetBlock(skinInst.SkinPartition);
+            Assert.NotNull(skinPart);
+            Assert.Single(skinPart.Partitions);
+
+            var source = skinPart.Partitions[0];
+            var partTris = new List<Triangle>(source.TrianglesCopy);
+
+            var first = source;
+            first.TrianglesCopy = partTris.GetRange(0, splitAt);
+            first.NumTriangles = (ushort)first.TrianglesCopy.Count;
+
+            var second = source;
+            second.TrianglesCopy = partTris.GetRange(splitAt, partTris.Count - splitAt);
+            second.NumTriangles = (ushort)second.TrianglesCopy.Count;
+
+            skinPart.Partitions = [first, second];
+            skinPart.NumPartitions = 2;
+
+            // The partition index of each triangle is derived from the partitions' triangles
+            skinPart.GenerateTriPartsFromTrueTriangles(shape.Triangles);
+
+            if (skinInst is BSDismemberSkinInstance dismemberSkinInst)
+                dismemberSkinInst.Partitions.Add(dismemberSkinInst.Partitions[0]);
+
+            return skinPart;
+        }
+
+        [Fact(DisplayName = "Update skin partitions with unmapped triangle indices (SE)")]
+        public void UpdateSkinPartitions_UnmappedIndices_SE()
+        {
+            const string TestName = "UpdateSkinPartitions_UnmappedIndices_SE";
+
+            var nif = new NifFile();
+            Assert.Equal(0, nif.Load($"{AssetsDirectory}/V20.2.0.7/12/100/Skinned.nif"));
+
+            foreach (var shape in nif.GetShapes())
+            {
+                var skinPart = SplitSkinPartitionInTwo(nif, shape, shape.Triangles.Count / 2);
+                nif.UpdateSkinPartitions(shape);
+
+                // Both partitions must end up with a partial vertex map, or mapped and
+                // unmapped indices would be indistinguishable and the test wouldn't gate anything
+                Assert.All(skinPart.Partitions, part => Assert.True(part.VertexMap.Count < shape.VertexCount));
+
+                // SE indexes the shape's vertex list, not the partition's vertex map
+                Assert.All(skinPart.Partitions, part => Assert.Equal(VertexIndices(part.TrianglesCopy), VertexIndices(part.Triangles)));
+            }
+
+            Assert.Equal(0, nif.Save($"{OutputDirectory}/{TestName}.nif"));
+
+            // The saved indices are what other tools read, so check them after a round trip
+            var nifReloaded = new NifFile();
+            Assert.Equal(0, nifReloaded.Load($"{OutputDirectory}/{TestName}.nif"));
+
+            foreach (var shape in nifReloaded.GetShapes())
+            {
+                var skinInst = nifReloaded.GetBlock<NiSkinInstance>(shape.SkinInstanceRef);
+                Assert.NotNull(skinInst);
+
+                var skinPart = nifReloaded.GetBlock(skinInst.SkinPartition);
+                Assert.NotNull(skinPart);
+
+                Assert.Equal(2, skinPart.Partitions.Count);
+                Assert.All(skinPart.Partitions, part => Assert.True(part.VertexMap.Count < shape.VertexCount));
+                Assert.All(skinPart.Partitions, part => Assert.Equal(VertexIndices(part.TrianglesCopy), VertexIndices(part.Triangles)));
+            }
+        }
+
+        [Fact(DisplayName = "Update skin partitions with a partition without triangles (SE)")]
+        public void UpdateSkinPartitions_EmptyPartition_SE()
+        {
+            var nif = new NifFile();
+            Assert.Equal(0, nif.Load($"{AssetsDirectory}/V20.2.0.7/12/100/Skinned.nif"));
+
+            foreach (var shape in nif.GetShapes())
+            {
+                // The second partition gets no triangles at all
+                var skinPart = SplitSkinPartitionInTwo(nif, shape, shape.Triangles.Count);
+                nif.UpdateSkinPartitions(shape);
+
+                Assert.Equal(2, skinPart.Partitions.Count);
+                Assert.Equal(shape.Triangles.Count, skinPart.Partitions[0].Triangles.Count);
+                Assert.Empty(skinPart.Partitions[1].Triangles);
+                Assert.Equal(0, skinPart.Partitions[1].NumBones);
+            }
         }
 
         [Fact(DisplayName = "Load and save file with non-zero index root node (LE)")]
