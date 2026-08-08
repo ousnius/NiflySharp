@@ -171,7 +171,7 @@ namespace NiflySharp
 
         public bool IsFO4()
         {
-            return FileVersion == NiFileVersion.V20_2_0_7 && StreamVersion == 130;
+            return FileVersion == NiFileVersion.V20_2_0_7 && StreamVersion >= 130 && StreamVersion <= 139;
         }
 
         public bool IsFO76()
