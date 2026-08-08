@@ -1,9 +1,11 @@
 using NiflySharp.Blocks;
+using NiflySharp.Structs;
 using System;
 using System.Diagnostics;
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using Xunit;
 
 namespace NiflySharp.Test
@@ -844,6 +846,165 @@ namespace NiflySharp.Test
             using var input = new MemoryStream(output.ToArray(), false);
             Assert.Equal(0, loaded.Load(input));
             Assert.Equal(rootIds, loaded.Header.RootBlockIds);
+        }
+
+        [Fact(DisplayName = "Save keeps geometry counters on skinned shapes (SE)")]
+        public void SaveKeepsGeometryCounters_SkinnedSSE()
+        {
+            var nif = new NifFile();
+            Assert.Equal(0, nif.Load($"{AssetsDirectory}/V20.2.0.7/12/100/Skinned.nif"));
+
+            var shapes = nif.GetShapes().OfType<BSTriShape>().ToList();
+            Assert.NotEmpty(shapes);
+            Assert.All(shapes, shape => Assert.True(shape.IsSkinned));
+
+            using var output = new MemoryStream();
+            Assert.Equal(0, nif.Save(output));
+
+            // A skinned shape writes zeros for its counts because the geometry lives in the
+            // NiSkinPartition, but it has to keep them. Data size is recalculated from those
+            // counts on every save, so a zero here means they were lost.
+            Assert.All(shapes, shape => Assert.True(shape.DataSize > 0));
+        }
+
+        [Fact(DisplayName = "Edit after save is kept on skinned shapes (SE)")]
+        public void EditAfterSaveIsKept_SkinnedSSE()
+        {
+            var nif = new NifFile();
+            Assert.Equal(0, nif.Load($"{AssetsDirectory}/V20.2.0.7/12/100/Skinned.nif"));
+
+            var shape = nif.GetShapes().OfType<BSTriShape>().First();
+            var original = shape.VertexPositions.ToList();
+            Assert.NotEmpty(original);
+
+            using var firstSave = new MemoryStream();
+            Assert.Equal(0, nif.Save(firstSave));
+
+            shape.SetVertexPositions([.. original.Select(v => new Vector3(v.X + 10.0f, v.Y, v.Z))]);
+
+            using var secondSave = new MemoryStream();
+            Assert.Equal(0, nif.Save(secondSave));
+
+            var reloaded = new NifFile();
+            using var input = new MemoryStream(secondSave.ToArray(), false);
+            Assert.Equal(0, reloaded.Load(input));
+
+            var reloadedPositions = reloaded.GetShapes().OfType<BSTriShape>().First().VertexPositions;
+            Assert.Equal(original.Count, reloadedPositions.Count);
+            Assert.All(reloadedPositions.Zip(original), pair => Assert.Equal(pair.Second.X + 10.0f, pair.First.X, 3));
+        }
+
+        [Fact(DisplayName = "Save keeps particle data on skinned shapes (SE)")]
+        public void SaveKeepsParticleData_SkinnedSSE()
+        {
+            var nif = new NifFile();
+            Assert.Equal(0, nif.Load($"{AssetsDirectory}/V20.2.0.7/12/100/Skinned.nif"));
+
+            var shape = nif.GetShapes().OfType<BSTriShape>().First();
+            Assert.True(shape.IsSkinned);
+
+            AddParticleData(shape);
+            int vertexCount = shape.VertexCount;
+            int triangleCount = shape.TriangleCount;
+
+            using var output = new MemoryStream();
+            Assert.Equal(0, nif.Save(output));
+
+            // The save cannot write particle arrays for a skinned shape, but it must not
+            // consume them either.
+            Assert.Equal(vertexCount, shape.ParticleVertices.Count);
+            Assert.Equal(vertexCount, shape.ParticleNormals.Count);
+            Assert.Equal(triangleCount, shape.ParticleTriangles.Count);
+            Assert.Equal((uint)((vertexCount * 6) + (triangleCount * 3)), shape.ParticleDataSize);
+
+            // The vertex and triangle counts a reader uses to find the particle arrays are
+            // written as zero for a skinned shape, so the size on disk has to be zero too.
+            var reloaded = new NifFile();
+            using var input = new MemoryStream(output.ToArray(), false);
+            Assert.Equal(0, reloaded.Load(input));
+
+            var reloadedShape = reloaded.GetShapes().OfType<BSTriShape>().First();
+            Assert.Equal(0u, reloadedShape.ParticleDataSize);
+            Assert.Empty(reloadedShape.ParticleVertices ?? []);
+        }
+
+        [Fact(DisplayName = "Save keeps particle data on skinned dynamic shapes (SE)")]
+        public void SaveKeepsParticleData_SkinnedDynamicSSE()
+        {
+            var nif = new NifFile();
+            Assert.Equal(0, nif.Load($"{AssetsDirectory}/V20.2.0.7/12/100/SkinnedDynamic.nif"));
+
+            var shape = nif.GetShapes().OfType<BSDynamicTriShape>().First();
+            Assert.True(shape.IsSkinned);
+
+            AddParticleData(shape);
+            int vertexCount = shape.VertexCount;
+            int triangleCount = shape.TriangleCount;
+
+            using var output = new MemoryStream();
+            Assert.Equal(0, nif.Save(output));
+
+            Assert.Equal(vertexCount, shape.ParticleVertices.Count);
+            Assert.Equal(vertexCount, shape.ParticleNormals.Count);
+            Assert.Equal(triangleCount, shape.ParticleTriangles.Count);
+
+            // A dynamic shape writes its real vertex count, so the particle vertices and
+            // normals still round-trip. Its triangle count is written as zero, so the
+            // particle triangles cannot be, and the size has to leave them out.
+            var reloaded = new NifFile();
+            using var input = new MemoryStream(output.ToArray(), false);
+            Assert.Equal(0, reloaded.Load(input));
+
+            var reloadedShape = reloaded.GetShapes().OfType<BSDynamicTriShape>().First();
+            Assert.Equal((uint)(vertexCount * 6), reloadedShape.ParticleDataSize);
+            Assert.Equal(vertexCount, reloadedShape.ParticleVertices.Count);
+            Assert.Equal(vertexCount, reloadedShape.ParticleNormals.Count);
+            Assert.Empty(reloadedShape.ParticleTriangles ?? []);
+        }
+
+        [Fact(DisplayName = "Save round-trips particle data on unskinned shapes (SE)")]
+        public void SaveRoundTripsParticleData_UnskinnedSSE()
+        {
+            var nif = new NifFile();
+            Assert.Equal(0, nif.Load($"{AssetsDirectory}/V20.2.0.7/12/100/Static.nif"));
+
+            var shape = nif.GetShapes().OfType<BSTriShape>().First();
+            Assert.False(shape.IsSkinned);
+
+            AddParticleData(shape);
+            int vertexCount = shape.VertexCount;
+            int triangleCount = shape.TriangleCount;
+
+            using var output = new MemoryStream();
+            Assert.Equal(0, nif.Save(output));
+
+            var reloaded = new NifFile();
+            using var input = new MemoryStream(output.ToArray(), false);
+            Assert.Equal(0, reloaded.Load(input));
+
+            // An unskinned shape writes its real counts, so the particle arrays survive
+            // the round-trip at the size nif.xml calculates for them.
+            var reloadedShape = reloaded.GetShapes().OfType<BSTriShape>().First();
+            Assert.Equal((uint)((vertexCount * 6) + (triangleCount * 3)), reloadedShape.ParticleDataSize);
+            Assert.Equal(vertexCount, reloadedShape.ParticleVertices.Count);
+            Assert.Equal(vertexCount, reloadedShape.ParticleNormals.Count);
+            Assert.Equal(triangleCount, reloadedShape.ParticleTriangles.Count);
+            Assert.Equal(shape.ParticleTriangles, reloadedShape.ParticleTriangles);
+        }
+
+        /// <summary>
+        /// Fills in particle data the way OptimizeFor does for a shape carrying NiOptimizeKeep.
+        /// </summary>
+        private static void AddParticleData(BSTriShape shape)
+        {
+            Assert.True(shape.VertexCount > 0);
+            Assert.True(shape.TriangleCount > 0);
+
+            shape.ParticleVertices = [.. shape.VertexPositions.Select(v =>
+                new HalfVector3() { X = (Half)v.X, Y = (Half)v.Y, Z = (Half)v.Z })];
+            shape.ParticleNormals = [.. shape.ParticleVertices];
+            shape.ParticleTriangles = [.. shape.Triangles];
+            shape.ParticleDataSize = (uint)((shape.VertexCount * 6) + (shape.TriangleCount * 3));
         }
     }
 }
