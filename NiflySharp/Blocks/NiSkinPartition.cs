@@ -48,8 +48,20 @@ namespace NiflySharp.Blocks
             return triangulated;
         }
 
+        partial void CopyFromExtra(NiSkinPartition other)
+        {
+            mappedIndices = other.mappedIndices;
+            triParts = other.triParts == null ? [] : new List<int>(other.triParts);
+        }
+
         public new void BeforeSync(NiStreamReversible stream)
         {
+            if (stream.CurrentMode == NiStreamReversible.Mode.Read)
+            {
+                if (stream.Version.UserVersion >= 12 && stream.Version.StreamVersion == 100)
+                    mappedIndices = false;
+            }
+
             if (stream.CurrentMode == NiStreamReversible.Mode.Write)
             {
                 if (stream.Version.StreamVersion == 100)
