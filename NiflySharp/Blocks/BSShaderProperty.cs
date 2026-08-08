@@ -8,6 +8,12 @@ namespace NiflySharp.Blocks
     {
         public ShaderGameType Type { get; set; }
 
+        // Type is not a file field, so the generated copy constructor doesn't cover it
+        partial void CopyFromExtra(BSShaderProperty other)
+        {
+            Type = other.Type;
+        }
+
         /// <summary>
         /// Assigns the shader game type for legacy (FO3/NV) shader blocks.
         /// Modern shader blocks (BSLightingShaderProperty etc.) hide this with
