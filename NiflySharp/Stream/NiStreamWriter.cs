@@ -1,11 +1,10 @@
-﻿using System.IO;
-using System.Text;
+﻿using System.Text;
 
 namespace NiflySharp.Stream
 {
     public class NiStreamWriter
     {
-        public BinaryWriter Writer { get; }
+        public CustomBinaryWriter Writer { get; }
 
         public NifFile File { get; }
 
@@ -13,7 +12,7 @@ namespace NiflySharp.Stream
 
         public NiStreamWriter(System.IO.Stream stream, NifFile file)
         {
-            Writer = new BinaryWriter(stream, Encoding.UTF8, true);
+            Writer = new CustomBinaryWriter(stream, Encoding.UTF8, true);
             File = file;
         }
     }

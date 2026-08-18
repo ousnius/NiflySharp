@@ -220,7 +220,7 @@ namespace NiflySharp
                 Clear();
                 return 1;
             }
-            
+
             /*
             if (!(Header.Version.FileVersion >= NiVersion.ToFile(20, 2, 0, 7) && (Header.Version.UserVersion == 11 || Header.Version.UserVersion == 12)))
             {
@@ -229,7 +229,6 @@ namespace NiflySharp
                 return 2;
             }
             */
-
             var streamReversible = new NiStreamReversible(streamReader);
 
             Blocks = new List<INiObject>(Header.BlockCount);
@@ -249,6 +248,16 @@ namespace NiflySharp
                     // Truncated or malformed block type data
                     Clear();
                     return 1;
+                }
+
+                int dataStreamUsage = 0;
+                int dataStreamAccess = 0;
+                if (blockTypeStr.StartsWith("NiDataStream\x01"))
+                {
+                    var parts = blockTypeStr.Split('\x01');
+                    blockTypeStr = parts[0];
+                    dataStreamUsage = int.Parse(parts[1]);
+                    dataStreamAccess = int.Parse(parts[2]);
                 }
 
                 NiObject block = null;
@@ -295,6 +304,17 @@ namespace NiflySharp
                     }
 
                     block = blockStreamable as NiObject;
+                }
+
+                if (blockTypeStr == "NiDataStream")
+                {
+                    NiDataStream dataStream = block as NiDataStream;
+                    if (dataStream != null)
+                    {
+                        dataStream.Usage = (DataStreamUsage)dataStreamUsage;
+                        dataStream.Access = (DataStreamAccess)dataStreamAccess;
+                    }
+                    
                 }
 
                 if (block != null)
@@ -383,6 +403,7 @@ namespace NiflySharp
             Header.Write(streamWriter);
 
             var streamReversible = new NiStreamReversible(streamWriter);
+            
             long blockStartPos = streamWriter.Writer.BaseStream.Position;
 
             // Retrieve block sizes from stream after writing each block
