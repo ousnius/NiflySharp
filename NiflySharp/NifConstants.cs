@@ -8,7 +8,7 @@
         /// Arbitrary limit for the element count of an array for file IO validation.
         /// Keeps misinterpreted or corrupted file data from causing huge allocations.
         /// </summary>
-        public const int ArraySizeLimit = 1024 * 1024 * 8;
+        public const int ArraySizeLimit = 1024 * 1024 * 10;
 
         /// <summary>
         /// Arbitrary limit for block indices for file IO validation.
