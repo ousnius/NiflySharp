@@ -1,17 +1,16 @@
-﻿using System.IO;
-using System.Text;
+﻿using System.Text;
 
 namespace NiflySharp.Stream
 {
     public class NiStreamReader
     {
-        public BinaryReader Reader { get; }
+        public CustomBinaryReader Reader { get; }
 
         public NifFile File { get; }
 
         public NiStreamReader(System.IO.Stream stream, NifFile file)
         {
-            Reader = new BinaryReader(stream, Encoding.UTF8, true);
+            Reader = new CustomBinaryReader(stream, Encoding.UTF8, true);
             File = file;
         }
 

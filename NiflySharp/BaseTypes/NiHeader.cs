@@ -1,6 +1,7 @@
 ﻿using NiflySharp.Stream;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -281,7 +282,9 @@ namespace NiflySharp
             Version.FileVersion = vfile;
 
             if (vfile >= NiVersion.ToFile(20, 0, 0, 3))
+            {
                 Endian = (NiEndian)stream.Reader.ReadByte();
+            }
             else
                 Endian = NiEndian.Little;
 
@@ -328,7 +331,7 @@ namespace NiflySharp
                 for (int i = 0; i < embedData.Capacity; i++)
                     embedData.Add(stream.Reader.ReadByte());
             }
-
+            stream.Reader.Endian = Endian;
             if (vfile >= NiFileVersion.V5_0_0_1)
             {
                 blockTypes = new List<NiString>(stream.Reader.ReadUInt16());
@@ -449,7 +452,7 @@ namespace NiflySharp
                 stream.Writer.Write(embedData.Count);
                 embedData.ForEach(ed => stream.Writer.Write(ed));
             }
-
+            stream.Writer.Endian = Endian;
             if (Version.FileVersion >= NiFileVersion.V5_0_0_1)
             {
                 stream.Writer.Write((ushort)blockTypes.Count);
