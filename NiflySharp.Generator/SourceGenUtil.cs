@@ -185,6 +185,63 @@ namespace NiflySharp.Generator
         }
 
         /// <summary>
+        /// Classifies every generated struct as "ref-free": it contains no block refs, block ptrs
+        /// or string refs, directly or through nested structs (lists of values are fine). The
+        /// References / Pointers / ReferenceArrays / StringRefs getters of a block or struct skip
+        /// fields of these types, which can only ever contribute nothing. Without this, e.g.
+        /// <c>NiSkinPartition.References</c> walks every triangle of every partition to collect an
+        /// empty list, and the getters are called for every block whenever refs are fixed up
+        /// (block removal, sorting, header strings), which made them a large part of load and save
+        /// time for skinned meshes.
+        /// </summary>
+        public static HashSet<string> ComputeRefFreeStructs(NifXml nifXml)
+        {
+            // Structs the generator never emits ref getters for (hand-written or base types).
+            var refFree = new HashSet<string>(SkippedTypes);
+
+            bool changed = true;
+            while (changed)
+            {
+                changed = false;
+
+                foreach (var s in nifXml.Structs)
+                {
+                    if (refFree.Contains(s.Name))
+                        continue;
+                    if (s.Generic)
+                        continue; // 'T' field has unknown type; keep conservative.
+
+                    if (IsStructRefFree(nifXml, s, refFree))
+                    {
+                        refFree.Add(s.Name);
+                        changed = true;
+                    }
+                }
+            }
+
+            return refFree;
+        }
+
+        private static bool IsStructRefFree(NifXml nifXml, NifXmlStruct s, HashSet<string> refFreeSoFar)
+        {
+            foreach (var field in s.Fields)
+            {
+                string fieldTypeName = GetFieldTypeName(s, field, out _, out bool isRef, out bool isPtr, out bool isStringRef);
+
+                if (isRef || isPtr || isStringRef)
+                    return false;
+
+                if (fieldTypeName == "T" || fieldTypeName.Contains("<T>"))
+                    return false;
+
+                if (nifXml.IsStructType(field) && !refFreeSoFar.Contains(field.Type))
+                    return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
         /// Fields to only calculate ("calc") if value > 0
         /// </summary>
         public static readonly string[] CalcNotNullFields =
