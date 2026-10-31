@@ -51,6 +51,14 @@ namespace NiflySharp
         /// </summary>
         private static Dictionary<string, Type> _blockTypesByBinaryName;
 
+        /// <summary>
+        /// Block type name to C# type (null when there is none), for names without a
+        /// <see cref="NifBlockNameAttribute"/>. <see cref="Type.GetType(string)"/> was otherwise
+        /// called once per block on every load.
+        /// </summary>
+        private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, Type> _blockTypesByName =
+            new(StringComparer.Ordinal);
+
         private static Dictionary<string, Type> GetBlockTypesByBinaryName()
         {
             if (_blockTypesByBinaryName != null)
@@ -261,7 +269,8 @@ namespace NiflySharp
                     // emitted by the source generator; everything else falls back to direct
                     // namespace lookup.
                     if (!GetBlockTypesByBinaryName().TryGetValue(blockTypeStr, out Type blockType))
-                        blockType = Type.GetType("NiflySharp.Blocks." + blockTypeStr);
+                        blockType = _blockTypesByName.GetOrAdd(blockTypeStr,
+                            name => Type.GetType("NiflySharp.Blocks." + name));
                     blockStreamable = Activator.CreateInstance(blockType) as INiStreamable;
                 }
                 catch
