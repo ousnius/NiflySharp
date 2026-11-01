@@ -5,6 +5,7 @@ using NiflySharp.Interfaces;
 using NiflySharp.Stream;
 using NiflySharp.Structs;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -52,11 +53,11 @@ namespace NiflySharp
         private static Dictionary<string, Type> _blockTypesByBinaryName;
 
         /// <summary>
-        /// Block type name to C# type (null when there is none), for names without a
-        /// <see cref="NifBlockNameAttribute"/>. <see cref="Type.GetType(string)"/> was otherwise
-        /// called once per block on every load.
+        /// Block type name to C# type, for names without a <see cref="NifBlockNameAttribute"/>.
+        /// <see cref="Type.GetType(string)"/> was otherwise called once per block on every load.
+        /// Only names that resolve are cached, so names read from corrupt files can't grow it.
         /// </summary>
-        private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, Type> _blockTypesByName =
+        private static readonly ConcurrentDictionary<string, Type> _blockTypesByName =
             new(StringComparer.Ordinal);
 
         private static Dictionary<string, Type> GetBlockTypesByBinaryName()
@@ -268,9 +269,13 @@ namespace NiflySharp
                     // identifier (e.g. "BSSkin::Instance") are looked up via NifBlockNameAttribute
                     // emitted by the source generator; everything else falls back to direct
                     // namespace lookup.
-                    if (!GetBlockTypesByBinaryName().TryGetValue(blockTypeStr, out Type blockType))
-                        blockType = _blockTypesByName.GetOrAdd(blockTypeStr,
-                            name => Type.GetType("NiflySharp.Blocks." + name));
+                    if (!GetBlockTypesByBinaryName().TryGetValue(blockTypeStr, out Type blockType) &&
+                        !_blockTypesByName.TryGetValue(blockTypeStr, out blockType))
+                    {
+                        blockType = Type.GetType("NiflySharp.Blocks." + blockTypeStr);
+                        if (blockType != null)
+                            _blockTypesByName.TryAdd(blockTypeStr, blockType);
+                    }
                     blockStreamable = Activator.CreateInstance(blockType) as INiStreamable;
                 }
                 catch
