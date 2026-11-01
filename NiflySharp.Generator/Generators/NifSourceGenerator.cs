@@ -50,9 +50,12 @@ namespace NiflySharp.Generator
                 // DeepClone() calls for fields whose types contain no reference members.
                 var pureValueStructs = SourceGenUtil.ComputePureValueStructs(nifXml);
 
+                // Structs that can hold no refs, ptrs or string refs: the ref getters skip them.
+                var refFreeStructs = SourceGenUtil.ComputeRefFreeStructs(nifXml);
+
                 // Generate object/struct sources
                 foreach (var nifObject in nifXml.EnumerateObjectsAndStructs())
-                    GenerateSource(spc, nifXml, nifObject, pureValueStructs);
+                    GenerateSource(spc, nifXml, nifObject, pureValueStructs, refFreeStructs);
             });
         }
 
@@ -502,7 +505,8 @@ namespace NiflySharp.Bitfields
         /// <summary>
         /// Generate object/struct sources
         /// </summary>
-        public void GenerateSource(SourceProductionContext context, NifXml nifXml, INifXmlObject nifObject, HashSet<string> pureValueStructs = null)
+        public void GenerateSource(SourceProductionContext context, NifXml nifXml, INifXmlObject nifObject, HashSet<string> pureValueStructs = null,
+            HashSet<string> refFreeStructs = null)
         {
             string typeName = SourceGenUtil.NormalizeTypeName(nifObject.Name);
 
@@ -739,7 +743,8 @@ namespace NiflySharp.Bitfields
 
                     if (!isStringRef && nifXml.IsStructType(field))
                     {
-                        if (!SourceGenUtil.SkippedTypes.Contains(field.Type))
+                        if (!SourceGenUtil.SkippedTypes.Contains(field.Type) &&
+                            !(refFreeStructs?.Contains(field.Type) ?? false))
                         {
                             if (isArray)
                             {

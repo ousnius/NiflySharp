@@ -45,59 +45,62 @@ namespace NiflySharp.Structs
 
         public void Sync(NiStreamReversible stream)
         {
-            if ((Convert.ToInt32(stream.Argument) & 0x401) == 0x401)
+            // The vertex attribute flags, converted once per vertex rather than once per attribute.
+            int vertexFlags = Convert.ToInt32(stream.Argument);
+
+            if ((vertexFlags & 0x401) == 0x401)
             {
                 stream.Sync(ref Vertex);
             }
 
-            if ((Convert.ToInt32(stream.Argument) & 0x411) == 0x411)
+            if ((vertexFlags & 0x411) == 0x411)
             {
                 stream.Sync(ref BitangentX);
             }
 
-            if ((Convert.ToInt32(stream.Argument) & 0x411) == 0x401)
+            if ((vertexFlags & 0x411) == 0x401)
             {
                 stream.Sync(ref UnusedW);
             }
 
-            if ((Convert.ToInt32(stream.Argument) & 0x401) == 0x1)
+            if ((vertexFlags & 0x401) == 0x1)
             {
                 stream.Sync(ref VertexHalf);
             }
 
-            if ((Convert.ToInt32(stream.Argument) & 0x411) == 0x11)
+            if ((vertexFlags & 0x411) == 0x11)
             {
                 stream.Sync(ref BitangentXHalf);
             }
 
-            if ((Convert.ToInt32(stream.Argument) & 0x411) == 0x1)
+            if ((vertexFlags & 0x411) == 0x1)
             {
                 stream.Sync(ref UnusedWShort);
             }
 
-            if ((Convert.ToInt32(stream.Argument) & 0x2) != 0)
+            if ((vertexFlags & 0x2) != 0)
             {
                 stream.Sync(ref UV);
             }
 
-            if ((Convert.ToInt32(stream.Argument) & 0x8) != 0)
+            if ((vertexFlags & 0x8) != 0)
             {
                 stream.Sync(ref Normal);
                 stream.Sync(ref BitangentY);
             }
 
-            if ((Convert.ToInt32(stream.Argument) & 0x18) == 0x18)
+            if ((vertexFlags & 0x18) == 0x18)
             {
                 stream.Sync(ref Tangent);
                 stream.Sync(ref BitangentZ);
             }
 
-            if ((Convert.ToInt32(stream.Argument) & 0x20) != 0)
+            if ((vertexFlags & 0x20) != 0)
             {
                 stream.Sync(ref VertexColors);
             }
 
-            if ((Convert.ToInt32(stream.Argument) & 0x40) != 0)
+            if ((vertexFlags & 0x40) != 0)
             {
                 stream.Sync(ref BoneWeights[0]);
                 stream.Sync(ref BoneWeights[1]);
@@ -109,7 +112,7 @@ namespace NiflySharp.Structs
                 stream.Sync(ref BoneIndices[3]);
             }
 
-            if ((Convert.ToInt32(stream.Argument) & 0x100) != 0)
+            if ((vertexFlags & 0x100) != 0)
             {
                 stream.Sync(ref EyeData);
             }
