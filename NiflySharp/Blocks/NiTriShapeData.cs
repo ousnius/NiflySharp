@@ -113,8 +113,8 @@ namespace NiflySharp.Blocks
                 var sdir = new Vector3((t2 * x1 - t1 * x2) * r, (t2 * y1 - t1 * y2) * r, (t2 * z1 - t1 * z2) * r);
                 var tdir = new Vector3((s1 * x2 - s2 * x1) * r, (s1 * y2 - s2 * y1) * r, (s1 * z2 - s2 * z1) * r);
 
-                sdir = Vector3.Normalize(sdir);
-                tdir = Vector3.Normalize(tdir);
+                sdir = sdir.NormalizeOrZero();
+                tdir = tdir.NormalizeOrZero();
 
                 tan1[i1] += tdir;
                 tan1[i2] += tdir;
@@ -146,16 +146,16 @@ namespace NiflySharp.Blocks
                 }
                 else
                 {
-                    tangentsSpan[i] = Vector3.Normalize(tangentsSpan[i]);
+                    tangentsSpan[i] = tangentsSpan[i].NormalizeOrZero();
                     tangentsSpan[i] = tangentsSpan[i] - normalsSpan[i] * Vector3.Dot(normalsSpan[i], tangentsSpan[i]);
-                    tangentsSpan[i] = Vector3.Normalize(tangentsSpan[i]);
+                    tangentsSpan[i] = tangentsSpan[i].NormalizeOrZero();
 
-                    bitangentsSpan[i] = Vector3.Normalize(bitangentsSpan[i]);
+                    bitangentsSpan[i] = bitangentsSpan[i].NormalizeOrZero();
 
                     bitangentsSpan[i] = bitangentsSpan[i] - normalsSpan[i] * Vector3.Dot(normalsSpan[i], bitangentsSpan[i]);
                     bitangentsSpan[i] = bitangentsSpan[i] - tangentsSpan[i] * Vector3.Dot(tangentsSpan[i], bitangentsSpan[i]);
 
-                    bitangentsSpan[i] = Vector3.Normalize(bitangentsSpan[i]);
+                    bitangentsSpan[i] = bitangentsSpan[i].NormalizeOrZero();
                 }
             }
         }
