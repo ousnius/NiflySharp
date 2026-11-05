@@ -471,7 +471,12 @@ namespace NiflySharp
 
                     bsTriShape.SetVertexDataSSE(skinPart.VertexData);
 
-                    var tris = new List<Triangle>();
+                    int triCount = 0;
+                    foreach (var part in CollectionsMarshal.AsSpan(skinPart.Partitions))
+                        triCount += part.TrianglesCopy.Count;
+
+                    var tris = new List<Triangle>(triCount);
+                    skinPart.triParts.EnsureCapacity(skinPart.triParts.Count + triCount);
 
                     for (int pi = 0; pi < skinPart.Partitions.Count; ++pi)
                     {
@@ -1373,23 +1378,57 @@ namespace NiflySharp
             if (rootId == NiRef.NPOS)
                 return;
 
-            for (int i = 0; i < Header.BlockCount; i++)
+            // A block is unreferenced when no ref or pointer of any block (itself included) names it,
+            // and removing one can leave the blocks it named unreferenced. Count incoming refs once and
+            // follow the counts down, instead of rescanning every block after each removal.
+            int count = Blocks.Count;
+            var incoming = new int[count];
+            foreach (var b in Blocks)
+                foreach (int target in ReferencedIndices(b, count))
+                    incoming[target]++;
+
+            bool Removable(int i) => i != rootId && Blocks[i] is T && Blocks[i] is NiObject;
+
+            var removed = new bool[count];
+            var pending = new Stack<int>();
+            for (int i = 0; i < count; i++)
             {
-                if (i != rootId)
+                if (incoming[i] == 0 && Removable(i))
                 {
-                    // Only check blocks of provided template type
-                    if (GetBlock<T>(i) is NiObject block && !IsBlockReferenced(block))
+                    removed[i] = true;
+                    pending.Push(i);
+                }
+            }
+
+            while (pending.Count > 0)
+            {
+                foreach (int target in ReferencedIndices(Blocks[pending.Pop()], count))
+                {
+                    if (--incoming[target] == 0 && !removed[target] && Removable(target))
                     {
-                        RemoveBlock(block);
-
-                        removalCount++;
-
-                        // Removing a block can cause others to become unreferenced
-                        RemoveUnreferencedBlocks<T>(rootId > i ? rootId - 1 : rootId, ref removalCount);
-                        return;
+                        removed[target] = true;
+                        pending.Push(target);
                     }
                 }
             }
+
+            // Highest index first, so the indices still to remove stay valid.
+            for (int i = count - 1; i >= 0; i--)
+            {
+                if (removed[i] && RemoveBlock(i))
+                    removalCount++;
+            }
+        }
+
+        private static IEnumerable<int> ReferencedIndices(INiObject block, int blockCount)
+        {
+            foreach (var r in block.References)
+                if (r != null && r.Index >= 0 && r.Index < blockCount)
+                    yield return r.Index;
+
+            foreach (var p in block.Pointers)
+                if (p != null && p.Index >= 0 && p.Index < blockCount)
+                    yield return p.Index;
         }
 
         public class SortState
