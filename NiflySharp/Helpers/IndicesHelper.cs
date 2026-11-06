@@ -2,7 +2,7 @@
 using NiflySharp.Structs;
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Runtime.InteropServices;
 
 namespace NiflySharp.Helpers
 {
@@ -73,7 +73,37 @@ namespace NiflySharp.Helpers
         /// <param name="deletedTris">Deleted triangle indices</param>
         public static void ApplyMapToTriangles(ref List<Triangle> tris, List<ushort> map, out List<int> deletedTris)
 		{
-			ApplyMapToTriangles(ref tris, map.Select(e => (int)e).ToList(), out deletedTris);
+			// Same as the List<int> overload, but reads the map directly instead of copying it to a List<int>.
+			// Unsigned map values can't be negative, so only the range check applies.
+			ArgumentNullException.ThrowIfNull(tris);
+			ArgumentNullException.ThrowIfNull(map);
+
+			var mapSpan = CollectionsMarshal.AsSpan(map);
+			int mapsz = mapSpan.Length;
+			int di = 0;
+
+			deletedTris = [];
+
+			var trisSpan = CollectionsMarshal.AsSpan(tris);
+			for (int si = 0; si < trisSpan.Length; ++si)
+			{
+				var tri = trisSpan[si];
+				if (tri.V1 >= mapsz || tri.V2 >= mapsz || tri.V3 >= mapsz)
+				{
+					deletedTris.Add(si);
+					continue;
+				}
+
+				trisSpan[di] = new Triangle
+				{
+					V1 = mapSpan[tri.V1],
+					V2 = mapSpan[tri.V2],
+					V3 = mapSpan[tri.V3]
+				};
+				++di;
+			}
+
+			tris = tris.Resize(di);
 		}
 
         /// <summary>

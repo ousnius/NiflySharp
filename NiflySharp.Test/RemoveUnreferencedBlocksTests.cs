@@ -73,5 +73,42 @@ namespace NiflySharp.Test
 
             Assert.Equal(new[] { "Root", "LooseNode", "HeldByLooseNode" }, Names(nif));
         }
+
+        [Fact(DisplayName = "RemoveUnreferencedBlocks keeps a block referenced only by a pointer")]
+        public void PointerOnly_Kept()
+        {
+            var nif = new NifFile(NiVersion.GetSSE());
+            var root = Node(nif, "Root", out _);
+            var controller = new NiMultiTargetTransformController { ExtraTargets = new NiBlockPtrArray<NiAVObject>() };
+            root.Controller = new NiBlockRef<NiTimeController>(nif.AddBlock(controller));
+            Node(nif, "PtrOnly", out int ptrOnly);
+            controller.ExtraTargets.AddBlockRef(ptrOnly);
+
+            Assert.Equal(0, nif.RemoveUnreferencedBlocks());
+
+            Assert.Equal(new[] { "Root", nameof(NiMultiTargetTransformController), "PtrOnly" }, Names(nif));
+        }
+
+        [Fact(DisplayName = "RemoveUnreferencedBlocks counts duplicate refs from a removed block")]
+        public void DuplicateRefs_FromRemovedBlock()
+        {
+            var nif = new NifFile(NiVersion.GetSSE());
+            var root = Node(nif, "Root", out _);
+            var a = Node(nif, "LooseA", out _);
+            Node(nif, "OnlyHeldByA", out int bId);
+            Node(nif, "AlsoHeldByRoot", out int dId);
+
+            // A holds B and D twice each; the root also holds D
+            a.Children.AddBlockRef(bId);
+            a.Children.AddBlockRef(bId);
+            a.Children.AddBlockRef(dId);
+            a.Children.AddBlockRef(dId);
+            root.Children.AddBlockRef(dId);
+
+            Assert.Equal(2, nif.RemoveUnreferencedBlocks());
+
+            Assert.Equal(new[] { "Root", "AlsoHeldByRoot" }, Names(nif));
+            Assert.Equal(1, root.Children.Indices.Single());
+        }
     }
 }
