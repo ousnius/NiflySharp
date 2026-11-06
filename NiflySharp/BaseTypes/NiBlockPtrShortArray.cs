@@ -4,7 +4,10 @@
     {
         public override NiBlockPtrShortArray<T> Clone()
         {
-            var clone = new NiBlockPtrShortArray<T>();
+            var clone = new NiBlockPtrShortArray<T>
+            {
+                KeepEmptyRefs = KeepEmptyRefs
+            };
             clone.Resize(Count);
 
             for (int i = 0; i < clone.Count; i++)

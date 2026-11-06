@@ -31,6 +31,14 @@ namespace NiflySharp
 
 		public abstract void RemoveBlockRef(int id);
 
+        /// <summary>
+        /// Removes all refs pointing to block <paramref name="blockIndex"/>.
+        /// If <see cref="KeepEmptyRefs"/> is set, the refs are cleared instead so that positions of the other refs are kept.
+        /// </summary>
+        /// <param name="blockIndex">Block index the refs point to</param>
+        /// <returns>Number of refs removed or cleared</returns>
+        public abstract int RemoveRefsTo(int blockIndex);
+
 		public abstract IEnumerable<int> Indices { get; }
 
         public abstract IEnumerable<NiRef> References { get; }

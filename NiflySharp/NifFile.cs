@@ -1251,13 +1251,15 @@ namespace NiflySharp
             // Remove/adjust block references and pointers
             foreach (var b in Blocks)
             {
+                // Drop refs to the removed block from ref/ptr arrays first, before any renumbering.
+                // Arrays with KeepEmptyRefs (positional placeholders) clear the refs instead of removing them.
+                foreach (var refArray in b.ReferenceArrays)
+                    refArray.RemoveRefsTo(index);
+
                 foreach (var r in b.References.Where(r => r != null && !r.IsEmpty()))
                 {
                     if (r.Index == index)
-                    {
-                        RemoveRefFromList(r.List, r);
                         r.Clear();
-                    }
                     else if (r.Index > index)
                         r.Index--;
                 }
@@ -1265,36 +1267,13 @@ namespace NiflySharp
                 foreach (var p in b.Pointers.Where(p => p != null && !p.IsEmpty()))
                 {
                     if (p.Index == index)
-                    {
-                        RemoveRefFromList(p.List, p);
                         p.Clear();
-                    }
                     else if (p.Index > index)
                         p.Index--;
                 }
             }
 
             return true;
-        }
-
-        /// <summary>
-        /// Removes <paramref name="niRef"/> itself from <paramref name="list"/>.
-        /// <see cref="System.Collections.IList.Remove"/> would remove the first ref with an equal index, and refs
-        /// renumbered earlier in the same pass can already share the removed block's index.
-        /// </summary>
-        private static void RemoveRefFromList(System.Collections.IList list, INiRef niRef)
-        {
-            if (list == null)
-                return;
-
-            for (int i = 0; i < list.Count; i++)
-            {
-                if (ReferenceEquals(list[i], niRef))
-                {
-                    list.RemoveAt(i);
-                    return;
-                }
-            }
         }
 
         /// <summary>

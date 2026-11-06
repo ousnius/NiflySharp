@@ -38,6 +38,7 @@ namespace NiflySharp.Test
             Assert.True(nif.RemoveBlock(1));
 
             Assert.Equal(new[] { "B" }, ChildNames(nif, root));
+            Assert.Equal(1, root.Children.Count);
         }
 
         [Fact(DisplayName = "RemoveBlock keeps a sibling listed after the removed block")]
@@ -48,6 +49,33 @@ namespace NiflySharp.Test
             Assert.True(nif.RemoveBlock(1));
 
             Assert.Equal(new[] { "B" }, ChildNames(nif, root));
+            Assert.Equal(1, root.Children.Count);
+        }
+
+        [Fact(DisplayName = "RemoveBlock clears instead of removes refs in arrays that keep empty refs")]
+        public void RemoveBlock_KeepEmptyRefs_ClearsInPlace()
+        {
+            var (nif, root) = BuildRootWithChildren(1, 2);
+            root.Children.KeepEmptyRefs = true;
+
+            Assert.True(nif.RemoveBlock(1));
+
+            Assert.Equal(new[] { NiRef.NPOS, 1 }, root.Children.Indices.ToArray());
+        }
+
+        [Fact(DisplayName = "RemoveBlock removes the right ref from a pointer array")]
+        public void RemoveBlock_PointerArray_SiblingListedFirst_IsKept()
+        {
+            var (nif, _) = BuildRootWithChildren();
+            var controller = new NiMultiTargetTransformController { ExtraTargets = new NiBlockPtrArray<NiAVObject>() };
+            nif.AddBlock(controller);
+            controller.ExtraTargets.AddBlockRef(2);
+            controller.ExtraTargets.AddBlockRef(1);
+
+            Assert.True(nif.RemoveBlock(1));
+
+            // B (was block 2) is now block 1
+            Assert.Equal(new[] { 1 }, controller.ExtraTargets.Indices.ToArray());
         }
 
         [Fact(DisplayName = "RemoveBlock keeps the sibling after saving and reloading")]

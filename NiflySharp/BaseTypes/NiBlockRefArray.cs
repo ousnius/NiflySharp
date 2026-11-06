@@ -96,6 +96,30 @@ namespace NiflySharp
             }
         }
 
+        public override int RemoveRefsTo(int blockIndex)
+        {
+            if (blockIndex == NiRef.NPOS)
+                return 0;
+
+            if (!KeepEmptyRefs)
+            {
+                int removed = _refs.RemoveAll(r => r.Index == blockIndex);
+                _listSizeStream = _refs.Count;
+                return removed;
+            }
+
+            int cleared = 0;
+            foreach (var r in _refs)
+            {
+                if (r.Index == blockIndex)
+                {
+                    r.Clear();
+                    cleared++;
+                }
+            }
+            return cleared;
+        }
+
         public override IEnumerable<int> Indices
         {
             get
