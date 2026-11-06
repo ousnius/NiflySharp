@@ -1255,7 +1255,7 @@ namespace NiflySharp
                 {
                     if (r.Index == index)
                     {
-                        r.List?.Remove(r);
+                        RemoveRefFromList(r.List, r);
                         r.Clear();
                     }
                     else if (r.Index > index)
@@ -1266,7 +1266,7 @@ namespace NiflySharp
                 {
                     if (p.Index == index)
                     {
-                        p.List?.Remove(p);
+                        RemoveRefFromList(p.List, p);
                         p.Clear();
                     }
                     else if (p.Index > index)
@@ -1275,6 +1275,26 @@ namespace NiflySharp
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// Removes <paramref name="niRef"/> itself from <paramref name="list"/>.
+        /// <see cref="System.Collections.IList.Remove"/> would remove the first ref with an equal index, and refs
+        /// renumbered earlier in the same pass can already share the removed block's index.
+        /// </summary>
+        private static void RemoveRefFromList(System.Collections.IList list, INiRef niRef)
+        {
+            if (list == null)
+                return;
+
+            for (int i = 0; i < list.Count; i++)
+            {
+                if (ReferenceEquals(list[i], niRef))
+                {
+                    list.RemoveAt(i);
+                    return;
+                }
+            }
         }
 
         /// <summary>
