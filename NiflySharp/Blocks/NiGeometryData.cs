@@ -360,7 +360,11 @@ namespace NiflySharp.Blocks
             }
         }
 
-        public void CalcTangentSpace()
+        /// <summary>
+        /// Calculates tangents and bitangents. The base implementation only enables tangents;
+        /// <see cref="NiTriShapeData"/> and <see cref="NiTriStripsData"/> calculate them from their triangles.
+        /// </summary>
+        public virtual void CalcTangentSpace()
         {
             HasTangents = true;
         }

@@ -650,9 +650,9 @@ namespace NiflySharp.Blocks
                 for (int i = 0; i < _numVertices; i++)
                 {
                     rawNormalsSpan[i] = normals[i];
-                    vertexDataSpan[i].Normal.X = (sbyte)Math.Round((normals[i].X + 1.0f) / 2.0f * 255.0f);
-                    vertexDataSpan[i].Normal.Y = (sbyte)Math.Round((normals[i].Y + 1.0f) / 2.0f * 255.0f);
-                    vertexDataSpan[i].Normal.Z = (sbyte)Math.Round((normals[i].Z + 1.0f) / 2.0f * 255.0f);
+                    vertexDataSpan[i].Normal.X = (sbyte)Math.Round((normals[i].X + 1.0f) / 2.0f * 255.0f, MidpointRounding.AwayFromZero);
+                    vertexDataSpan[i].Normal.Y = (sbyte)Math.Round((normals[i].Y + 1.0f) / 2.0f * 255.0f, MidpointRounding.AwayFromZero);
+                    vertexDataSpan[i].Normal.Z = (sbyte)Math.Round((normals[i].Z + 1.0f) / 2.0f * 255.0f, MidpointRounding.AwayFromZero);
                 }
             }
             else if (_vertexData_List_BSVD != null)
@@ -662,9 +662,9 @@ namespace NiflySharp.Blocks
                 for (int i = 0; i < _numVertices; i++)
                 {
                     rawNormalsSpan[i] = normals[i];
-                    vertexDataSpan[i].Normal.X = (sbyte)Math.Round((normals[i].X + 1.0f) / 2.0f * 255.0f);
-                    vertexDataSpan[i].Normal.Y = (sbyte)Math.Round((normals[i].Y + 1.0f) / 2.0f * 255.0f);
-                    vertexDataSpan[i].Normal.Z = (sbyte)Math.Round((normals[i].Z + 1.0f) / 2.0f * 255.0f);
+                    vertexDataSpan[i].Normal.X = (sbyte)Math.Round((normals[i].X + 1.0f) / 2.0f * 255.0f, MidpointRounding.AwayFromZero);
+                    vertexDataSpan[i].Normal.Y = (sbyte)Math.Round((normals[i].Y + 1.0f) / 2.0f * 255.0f, MidpointRounding.AwayFromZero);
+                    vertexDataSpan[i].Normal.Z = (sbyte)Math.Round((normals[i].Z + 1.0f) / 2.0f * 255.0f, MidpointRounding.AwayFromZero);
                 }
             }
         }
@@ -690,9 +690,9 @@ namespace NiflySharp.Blocks
                 for (int i = 0; i < _numVertices; i++)
                 {
                     rawTangentsSpan[i] = tangents[i];
-                    vertexDataSpan[i].Tangent.X = (sbyte)Math.Round((tangents[i].X + 1.0f) / 2.0f * 255.0f);
-                    vertexDataSpan[i].Tangent.Y = (sbyte)Math.Round((tangents[i].Y + 1.0f) / 2.0f * 255.0f);
-                    vertexDataSpan[i].Tangent.Z = (sbyte)Math.Round((tangents[i].Z + 1.0f) / 2.0f * 255.0f);
+                    vertexDataSpan[i].Tangent.X = (sbyte)Math.Round((tangents[i].X + 1.0f) / 2.0f * 255.0f, MidpointRounding.AwayFromZero);
+                    vertexDataSpan[i].Tangent.Y = (sbyte)Math.Round((tangents[i].Y + 1.0f) / 2.0f * 255.0f, MidpointRounding.AwayFromZero);
+                    vertexDataSpan[i].Tangent.Z = (sbyte)Math.Round((tangents[i].Z + 1.0f) / 2.0f * 255.0f, MidpointRounding.AwayFromZero);
                 }
             }
             else if (_vertexData_List_BSVD != null)
@@ -702,9 +702,9 @@ namespace NiflySharp.Blocks
                 for (int i = 0; i < _numVertices; i++)
                 {
                     rawTangentsSpan[i] = tangents[i];
-                    vertexDataSpan[i].Tangent.X = (sbyte)Math.Round((tangents[i].X + 1.0f) / 2.0f * 255.0f);
-                    vertexDataSpan[i].Tangent.Y = (sbyte)Math.Round((tangents[i].Y + 1.0f) / 2.0f * 255.0f);
-                    vertexDataSpan[i].Tangent.Z = (sbyte)Math.Round((tangents[i].Z + 1.0f) / 2.0f * 255.0f);
+                    vertexDataSpan[i].Tangent.X = (sbyte)Math.Round((tangents[i].X + 1.0f) / 2.0f * 255.0f, MidpointRounding.AwayFromZero);
+                    vertexDataSpan[i].Tangent.Y = (sbyte)Math.Round((tangents[i].Y + 1.0f) / 2.0f * 255.0f, MidpointRounding.AwayFromZero);
+                    vertexDataSpan[i].Tangent.Z = (sbyte)Math.Round((tangents[i].Z + 1.0f) / 2.0f * 255.0f, MidpointRounding.AwayFromZero);
                 }
             }
         }
@@ -731,8 +731,8 @@ namespace NiflySharp.Blocks
                 {
                     rawBitangentsSpan[i] = bitangents[i];
                     vertexDataSpan[i].BitangentX = bitangents[i].X;
-                    vertexDataSpan[i].BitangentY = (sbyte)Math.Round((bitangents[i].Y + 1.0f) / 2.0f * 255.0f);
-                    vertexDataSpan[i].BitangentZ = (sbyte)Math.Round((bitangents[i].Z + 1.0f) / 2.0f * 255.0f);
+                    vertexDataSpan[i].BitangentY = (sbyte)Math.Round((bitangents[i].Y + 1.0f) / 2.0f * 255.0f, MidpointRounding.AwayFromZero);
+                    vertexDataSpan[i].BitangentZ = (sbyte)Math.Round((bitangents[i].Z + 1.0f) / 2.0f * 255.0f, MidpointRounding.AwayFromZero);
                 }
             }
             else if (_vertexData_List_BSVD != null)
@@ -746,8 +746,8 @@ namespace NiflySharp.Blocks
                         vertexDataSpan[i].BitangentX = bitangents[i].X;
                     else
                         vertexDataSpan[i].BitangentXHalf = (Half)bitangents[i].X;
-                    vertexDataSpan[i].BitangentY = (sbyte)Math.Round((bitangents[i].Y + 1.0f) / 2.0f * 255.0f);
-                    vertexDataSpan[i].BitangentZ = (sbyte)Math.Round((bitangents[i].Z + 1.0f) / 2.0f * 255.0f);
+                    vertexDataSpan[i].BitangentY = (sbyte)Math.Round((bitangents[i].Y + 1.0f) / 2.0f * 255.0f, MidpointRounding.AwayFromZero);
+                    vertexDataSpan[i].BitangentZ = (sbyte)Math.Round((bitangents[i].Z + 1.0f) / 2.0f * 255.0f, MidpointRounding.AwayFromZero);
                 }
             }
         }
@@ -1020,13 +1020,13 @@ namespace NiflySharp.Blocks
                     rawBitangentsSpan[i] = rawBitangentsSpan[i].NormalizeOrZero();
                 }
 
-                byte tX = (byte)Math.Round((rawTangentsSpan[i].X + 1.0f) / 2.0f * 255.0f);
-                byte tY = (byte)Math.Round((rawTangentsSpan[i].Y + 1.0f) / 2.0f * 255.0f);
-                byte tZ = (byte)Math.Round((rawTangentsSpan[i].Z + 1.0f) / 2.0f * 255.0f);
+                byte tX = (byte)Math.Round((rawTangentsSpan[i].X + 1.0f) / 2.0f * 255.0f, MidpointRounding.AwayFromZero);
+                byte tY = (byte)Math.Round((rawTangentsSpan[i].Y + 1.0f) / 2.0f * 255.0f, MidpointRounding.AwayFromZero);
+                byte tZ = (byte)Math.Round((rawTangentsSpan[i].Z + 1.0f) / 2.0f * 255.0f, MidpointRounding.AwayFromZero);
 
                 float btX = rawBitangentsSpan[i].X;
-                byte btY = (byte)Math.Round((rawBitangentsSpan[i].Y + 1.0f) / 2.0f * 255.0f);
-                byte btZ = (byte)Math.Round((rawBitangentsSpan[i].Z + 1.0f) / 2.0f * 255.0f);
+                byte btY = (byte)Math.Round((rawBitangentsSpan[i].Y + 1.0f) / 2.0f * 255.0f, MidpointRounding.AwayFromZero);
+                byte btZ = (byte)Math.Round((rawBitangentsSpan[i].Z + 1.0f) / 2.0f * 255.0f, MidpointRounding.AwayFromZero);
 
                 if (_vertexData_List_BSVDSSE != null)
                 {

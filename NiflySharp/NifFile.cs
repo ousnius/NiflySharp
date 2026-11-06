@@ -1075,6 +1075,24 @@ namespace NiflySharp
         }
 
         /// <summary>
+        /// Calculates tangents and bitangents of shape <paramref name="shape"/>,
+        /// using its geometry data block if it has one (e.g. <see cref="NiTriShapeData"/>, <see cref="NiTriStripsData"/>)
+        /// or the shape itself for <see cref="BSTriShape"/>.
+        /// </summary>
+        /// <param name="shape">Shape</param>
+        public void CalcTangentsForShape(INiShape shape)
+        {
+            if (shape == null)
+                return;
+
+            var geomData = GetBlock(shape.DataRef);
+            if (geomData != null)
+                geomData.CalcTangentSpace();
+            else if (shape is BSTriShape bsTriShape)
+                bsTriShape.CalcTangentSpace();
+        }
+
+        /// <summary>
         /// Returns the shader block assigned to <paramref name="shape"/>.
         /// </summary>
         /// <param name="shape">Shape</param>
