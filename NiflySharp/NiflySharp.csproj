@@ -42,7 +42,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="miniball-devel0" Version="1.0.4" />
+    <InternalsVisibleTo Include="NiflySharp.Test" />
   </ItemGroup>
 
   <ItemGroup>

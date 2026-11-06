@@ -20,6 +20,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="Assets\Miniball\**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Assets\Expected\**">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

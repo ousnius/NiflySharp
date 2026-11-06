@@ -27,7 +27,7 @@ This is a rewrite of the C++ version of [nifly](https://github.com/ousnius/nifly
 
 #### Libraries used
 - [nifxml](https://github.com/niftools/nifxml) - Used by source generator for NIF specification
-- [Miniball](https://github.com/SearchAThing-forks/miniball) - C# port for generating bounding spheres
+- [Miniball](https://people.inf.ethz.ch/gaertner/subdir/software/miniball.html) by Bernd Gärtner - Ported to C# for generating bounding spheres
 
 #### Credits
 - [Contributors to nifly](https://github.com/ousnius/nifly/graphs/contributors)
