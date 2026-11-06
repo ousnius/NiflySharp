@@ -76,14 +76,17 @@ namespace NiflySharp.Structs
                 return;
             }
 
-            var invmap = new List<ushort>();
-            for (ushort mi = 0; mi < VertexMap.Count; ++mi)
-            {
-                if (VertexMap[mi] >= invmap.Count)
-                    invmap.Resize(VertexMap[mi] + 1);
+            // Sized once: growing it per vertex reallocates the whole list each time (Resize sets an exact capacity)
+            int maxMapped = -1;
+            foreach (ushort mapped in CollectionsMarshal.AsSpan(VertexMap))
+                maxMapped = System.Math.Max(maxMapped, mapped);
 
-                invmap[VertexMap[mi]] = mi;
-            }
+            var invmap = new List<int>(maxMapped + 1);
+            invmap.Resize(maxMapped + 1);
+            var invmapSpan = CollectionsMarshal.AsSpan(invmap);
+            var vertexMapSpan = CollectionsMarshal.AsSpan(VertexMap);
+            for (int mi = 0; mi < vertexMapSpan.Length; ++mi)
+                invmapSpan[vertexMapSpan[mi]] = (ushort)mi;
 
             Triangles = Triangles.Resize(TrianglesCopy.Count);
             TrianglesCopy.CopyTo(CollectionsMarshal.AsSpan(Triangles));
