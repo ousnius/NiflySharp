@@ -6,6 +6,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using Xunit;
 
 namespace NiflySharp.Test
@@ -14,8 +15,7 @@ namespace NiflySharp.Test
     {
         const string ReferenceFile = "Assets/Miniball/MiniballReference.txt";
 
-        private static double[] Flatten(IEnumerable<Vector3> points) =>
-            points.SelectMany(p => new double[] { p.X, p.Y, p.Z }).ToArray();
+        private static Miniball Solve(List<Vector3> points) => new(CollectionsMarshal.AsSpan(points));
 
         private static List<Vector3> Points(params float[] xyz) =>
             Enumerable.Range(0, xyz.Length / 3).Select(i => new Vector3(xyz[i * 3], xyz[i * 3 + 1], xyz[i * 3 + 2])).ToList();
@@ -146,13 +146,13 @@ namespace NiflySharp.Test
                 var parts = line.Split('|');
                 var input = parts[0].Split(' ').Select(x => float.Parse(x, inv)).ToArray();
                 var expected = parts[1].Split(' ').Select(x => double.Parse(x, inv)).ToArray();
-                var coords = input.Skip(1).Take((int)input[0] * 3).Select(x => (double)x).ToArray();
+                var pts = Points(input.Skip(1).Take((int)input[0] * 3).ToArray());
 
-                var mb = new Miniball(3, coords);
+                var mb = Solve(pts);
                 var c = mb.Center;
 
-                Assert.True(c[0] == expected[0] && c[1] == expected[1] && c[2] == expected[2] && Math.Sqrt(mb.SquaredRadius) == expected[3],
-                    $"{parts[0]}: got ({c[0]:R}, {c[1]:R}, {c[2]:R}) r={Math.Sqrt(mb.SquaredRadius):R}, expected {parts[1]}");
+                Assert.True(c.X == expected[0] && c.Y == expected[1] && c.Z == expected[2] && Math.Sqrt(mb.SquaredRadius) == expected[3],
+                    $"{parts[0]}: got ({c.X:R}, {c.Y:R}, {c.Z:R}) r={Math.Sqrt(mb.SquaredRadius):R}, expected {parts[1]}");
                 checkedSets++;
             }
             Assert.Equal(1064, checkedSets);
@@ -169,12 +169,12 @@ namespace NiflySharp.Test
         [InlineData(new float[] { 0, 0, 0, 1, 1, 1, 4, 4, 4, 2, 2, 2 }, 2, 2, 2, 12)]                           // collinear
         public void KnownCases(float[] xyz, double cx, double cy, double cz, double sqrRadius)
         {
-            var mb = new Miniball(3, xyz.Select(x => (double)x).ToArray());
+            var mb = Solve(Points(xyz));
             var c = mb.Center;
 
-            Assert.Equal(cx, c[0], 12);
-            Assert.Equal(cy, c[1], 12);
-            Assert.Equal(cz, c[2], 12);
+            Assert.Equal(cx, c.X, 12);
+            Assert.Equal(cy, c.Y, 12);
+            Assert.Equal(cz, c.Z, 12);
             Assert.Equal(sqrRadius, mb.SquaredRadius, 12);
             Assert.InRange(mb.SupportPointCount, 1, 4);
         }
@@ -184,14 +184,13 @@ namespace NiflySharp.Test
         {
             foreach (var pts in RandomIntegerSets(7, 2000))
             {
-                var coords = Flatten(pts);
-                var mb = new Miniball(3, coords);
+                var mb = Solve(pts);
                 var c = mb.Center;
 
-                Assert.Equal(mb.SupportPointCount, mb.SupportPoints.Count());
+                Assert.Equal(mb.SupportPointCount, mb.SupportPoints.Length);
                 foreach (int i in mb.SupportPoints)
                 {
-                    double d2 = Math.Pow(coords[i * 3] - c[0], 2) + Math.Pow(coords[i * 3 + 1] - c[1], 2) + Math.Pow(coords[i * 3 + 2] - c[2], 2);
+                    double d2 = Math.Pow(pts[i].X - c.X, 2) + Math.Pow(pts[i].Y - c.Y, 2) + Math.Pow(pts[i].Z - c.Z, 2);
                     Assert.Equal(mb.SquaredRadius, d2, 1e-9 * Math.Max(1, mb.SquaredRadius));
                 }
             }
@@ -203,24 +202,22 @@ namespace NiflySharp.Test
             var sets = RandomIntegerSets(11, 5000).Concat(RandomBoxSets(12, 300, 2));
             foreach (var pts in sets)
             {
-                var mb = new Miniball(3, Flatten(pts));
+                var mb = Solve(pts);
                 var c = mb.Center;
                 var (expectedCenter, expectedSqrRadius) = BruteForceMinBall(pts.Select(p => (Vector3D)p).ToList());
 
                 double tol = 1e-7 * Math.Max(1, expectedSqrRadius);
                 Assert.True(Math.Abs(mb.SquaredRadius - expectedSqrRadius) <= tol,
                     $"{string.Join(" ", pts)}: r^2 {mb.SquaredRadius:R}, brute force {expectedSqrRadius:R}");
-                Assert.True((new Vector3D(c[0], c[1], c[2]) - expectedCenter).LengthSquared <= tol);
+                Assert.True((new Vector3D(c.X, c.Y, c.Z) - expectedCenter).LengthSquared <= tol);
             }
         }
 
         [Fact(DisplayName = "Miniball rejects invalid input")]
         public void InvalidInput()
         {
-            Assert.Throws<ArgumentNullException>(() => new Miniball(3, null));
-            Assert.Throws<ArgumentException>(() => new Miniball(3, []));
-            Assert.Throws<ArgumentException>(() => new Miniball(3, [1, 2]));
-            Assert.Throws<ArgumentOutOfRangeException>(() => new Miniball(0, [1, 2, 3]));
+            Assert.Throws<ArgumentException>(() => { new Miniball([]); });
+            Assert.Throws<ArgumentException>(() => { Solve([]); });
         }
 
         [Fact(DisplayName = "BoundingSphere is the smallest sphere containing all points")]
@@ -247,7 +244,7 @@ namespace NiflySharp.Test
         {
             // Miniball.hpp (and this port) leaves (-1, 0, -1) about 0.47 outside for this set
             var pts = Points(0, -1, 0, -1, 0, -1, 1, -1, -1, 1, 1, 0, -1, -1, 0, -1, 0, 1, 0, 1, 1, -1, -1, 1);
-            var mb = new Miniball(3, Flatten(pts));
+            var mb = Solve(pts);
             Assert.True(mb.RelativeError(out _) > 0.1);
 
             var sphere = new BoundingSphere(pts);

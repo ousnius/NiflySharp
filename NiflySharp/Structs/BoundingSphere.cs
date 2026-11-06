@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Runtime.InteropServices;
 
 namespace NiflySharp.Structs
 {
@@ -27,26 +28,27 @@ namespace NiflySharp.Structs
             if (points.Count == 0)
                 return;
 
-            var coords = new double[points.Count * 3];
-            for (int i = 0; i < points.Count; i++)
+            // Read the vertices in place where possible
+            ReadOnlySpan<Vector3> span = points switch
             {
-                coords[i * 3] = points[i].X;
-                coords[i * 3 + 1] = points[i].Y;
-                coords[i * 3 + 2] = points[i].Z;
-            }
+                List<Vector3> list => CollectionsMarshal.AsSpan(list),
+                Vector3[] array => array,
+                _ => [.. points],
+            };
 
-            var mb = new Miniball(3, coords);
-            var center = mb.Center;
-            Center = new Vector3((float)center[0], (float)center[1], (float)center[2]);
+            var mb = new Miniball(span);
+            var (x, y, z) = mb.Center;
+            Center = new Vector3((float)x, (float)y, (float)z);
             Radius = (float)Math.Sqrt(mb.SquaredRadius);
 
             // Safety net: Miniball can still miss a point on rare degenerate inputs, and the engine culls
             // a shape whose bounds miss its own geometry. Grow the radius to the farthest point then.
             // Points on the sphere sit a rounding error outside, so a margin keeps solved spheres unchanged.
-            float farthest = 0.0f;
-            for (int i = 0; i < points.Count; i++)
-                farthest = MathF.Max(farthest, Vector3.Distance(points[i], Center));
+            float farthestSqr = 0.0f;
+            foreach (var p in span)
+                farthestSqr = MathF.Max(farthestSqr, Vector3.DistanceSquared(p, Center));
 
+            float farthest = MathF.Sqrt(farthestSqr);
             if (farthest > Radius * (1.0f + 1e-5f))
                 Radius = farthest;
         }
