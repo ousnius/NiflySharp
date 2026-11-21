@@ -1364,8 +1364,12 @@ namespace NiflySharp.Bitfields
 
             // Arrays that are exclusive to different file versions can share one length field.
             // Only one of them holds data at a time, so the length is the largest of their counts.
-            foreach (var members in dictArrayCountMembers.GroupBy(m => m.Value))
+            foreach (var group in dictArrayCountMembers.GroupBy(m => m.Value))
             {
+                // A jagged array (one with a width) is stored flattened, so its count is the sum of
+                // its widths, not its length. It can't size a length shared with a plain array.
+                var plain = group.Where(m => string.IsNullOrWhiteSpace(nifObject.Fields.First(f => f.Name == m.Key).Width)).ToList();
+                var members = (plain.Count > 0 ? plain : group.ToList()).GroupBy(m => m.Value).First();
                 string normFieldName = SourceGenUtil.NormalizeFieldName(members.First().Key, null);
                 string normLengthFieldName = SourceGenUtil.NormalizeFieldName(members.Key.Name, null);
                 string normLengthTypeName = SourceGenUtil.GetFieldTypeName(nifObject, members.Key, out _, out _, out _, out _);
