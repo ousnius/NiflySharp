@@ -1362,33 +1362,41 @@ namespace NiflySharp.Bitfields
 
             string syncFuncArrayCounts = string.Empty;
 
-            // Arrays that are exclusive to different file versions can share one length field.
-            // Only one of them holds data at a time, so the length is the largest of their counts.
-            foreach (var members in dictArrayCountMembers.GroupBy(m => m.Value))
+            // Several arrays can share one length field, e.g. arrays exclusive to different file versions.
+            foreach (var group in dictArrayCountMembers.GroupBy(m => m.Value))
             {
-                string normFieldName = SourceGenUtil.NormalizeFieldName(members.First().Key, null);
-                string normLengthFieldName = SourceGenUtil.NormalizeFieldName(members.Key.Name, null);
-                string normLengthTypeName = SourceGenUtil.GetFieldTypeName(nifObject, members.Key, out _, out _, out _, out _);
+                var sharedLengthField = group.Key;
+
+                // A jagged array (one with a width) is stored flattened, so its count is the sum of
+                // its widths, not its length. When plain arrays share the length, only they size it,
+                // and the length is the largest of their counts (only one holds data at a time).
+                var allMembers = group.Select(m => m.Key).ToList();
+                var plainMembers = allMembers.Where(name => string.IsNullOrWhiteSpace(nifObject.Fields.First(f => f.Name == name).Width)).ToList();
+                var members = plainMembers.Count > 0 ? plainMembers : allMembers;
+
+                string normFieldName = SourceGenUtil.NormalizeFieldName(members[0], null);
+                string normLengthFieldName = SourceGenUtil.NormalizeFieldName(sharedLengthField.Name, null);
+                string normLengthTypeName = SourceGenUtil.GetFieldTypeName(nifObject, sharedLengthField, out _, out _, out _, out _);
 
                 string countExpression = $"({normFieldName}?.Count ?? 0)";
 
                 foreach (var otherMember in members.Skip(1))
                 {
-                    string normOtherFieldName = SourceGenUtil.NormalizeFieldName(otherMember.Key, null);
+                    string normOtherFieldName = SourceGenUtil.NormalizeFieldName(otherMember, null);
                     countExpression = $"Math.Max({countExpression}, {normOtherFieldName}?.Count ?? 0)";
                 }
 
                 string arrayCountFunc = $"{normLengthFieldName} = ({normLengthTypeName}){countExpression};\r\n";
 
                 // Create additional conditions for all colliding field definitions (e.g. mismatching types) for the array field
-                string collisionConditionsArray = SourceGenUtil.BuildFieldCollisionConditions(nifXml, members.First().Key, nifObject, typeName, arrayCountFunc, normFieldName, null, normLengthFieldName, "0");
+                string collisionConditionsArray = SourceGenUtil.BuildFieldCollisionConditions(nifXml, members[0], nifObject, typeName, arrayCountFunc, normFieldName, null, normLengthFieldName, "0");
                 if (!string.IsNullOrWhiteSpace(collisionConditionsArray))
                 {
                     arrayCountFunc = collisionConditionsArray.Replace("\r\n", "\r\n            ");
                 }
 
                 // Create additional conditions for all colliding field definitions (e.g. mismatching types) for the length field
-                string collisionConditionsLengthType = SourceGenUtil.BuildFieldCollisionConditions(nifXml, members.Key.Name, nifObject, typeName, arrayCountFunc, normLengthFieldName, normLengthTypeName, normLengthFieldName, "0");
+                string collisionConditionsLengthType = SourceGenUtil.BuildFieldCollisionConditions(nifXml, sharedLengthField.Name, nifObject, typeName, arrayCountFunc, normLengthFieldName, normLengthTypeName, normLengthFieldName, "0");
                 if (!string.IsNullOrWhiteSpace(collisionConditionsLengthType))
                 {
                     arrayCountFunc = collisionConditionsLengthType.Replace("\r\n", "\r\n            ");
