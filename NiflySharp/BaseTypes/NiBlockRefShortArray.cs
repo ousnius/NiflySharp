@@ -14,6 +14,7 @@ namespace NiflySharp
             short shortArraySize = (short)_listSizeStream;
             stream.Sync(ref shortArraySize);
             _listSizeStream = shortArraySize;
+            stream.CheckReadRefCount(_listSizeStream);
 
             Resize(_listSizeStream);
 

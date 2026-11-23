@@ -58,6 +58,7 @@ namespace NiflySharp
         public override void Sync(NiStreamReversible stream)
         {
             stream.Sync(ref _listSizeStream);
+            stream.CheckReadRefCount(_listSizeStream);
             Resize(_listSizeStream);
 
             foreach (var r in _refs)
