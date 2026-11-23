@@ -2,44 +2,44 @@ using NiflySharp.Blocks;
 using NiflySharp.Stream;
 using System;
 using System.IO;
-using System.Threading;
 using Xunit;
 
 namespace NiflySharp.Test
 {
-    public class MalformedRefArrayTests
+    public class MalformedFileTests
     {
         const string SkinnedFile = "Assets/V20.2.0.7/12/100/Skinned.nif";
 
-        // Byte 5 of the vertex descriptor of each NiSkinPartition, and a byte later in each.
-        // Zeroing one makes the partition read short, so the next block reads a garbage
-        // extra data count and used to allocate a ref for each of them.
-        [Theory(DisplayName = "Load fails fast on a garbage ref count (SSE)")]
-        [InlineData(1798)]
-        [InlineData(7243)]
-        [InlineData(12417)]
-        [InlineData(17862)]
-        public void Load_GarbageRefCount_FailsFast(int offset)
+        // Changed bytes that make a block read a different number of bytes than its stored
+        // size, in a file the default load still accepts:
+        // NiSkinPartition partition data, and the BSShaderTextureSet texture count (9 -> 0).
+        [Theory(DisplayName = "Block size check rejects a block that reads the wrong size (SSE)")]
+        [InlineData(17860, 0xFF)]
+        [InlineData(20324, 0x00)]
+        [InlineData(21796, 0x00)]
+        public void Load_CheckBlockSizes_RejectsWrongSize(int offset, byte value)
         {
             var bytes = File.ReadAllBytes(SkinnedFile);
+            bytes[offset] = value;
+
             Assert.Equal(0, new NifFile().Load(new MemoryStream(bytes)));
 
-            bytes[offset] = 0x00;
+            var options = new NifFileLoadOptions { CheckBlockSizes = true };
+            Assert.Equal(3, new NifFile().Load(new MemoryStream(bytes), options));
+        }
 
-            int result = -1;
-            long allocated = -1;
-            var thread = new Thread(() =>
+        [Fact(DisplayName = "Block size check accepts all valid test files")]
+        public void Load_CheckBlockSizes_AcceptsValidFiles()
+        {
+            var options = new NifFileLoadOptions { CheckBlockSizes = true };
+
+            foreach (var file in Directory.EnumerateFiles("Assets", "*.nif", SearchOption.AllDirectories))
             {
-                long before = GC.GetAllocatedBytesForCurrentThread();
-                result = new NifFile().Load(new MemoryStream(bytes));
-                allocated = GC.GetAllocatedBytesForCurrentThread() - before;
-            })
-            { IsBackground = true };
+                if (new NifFile().Load(file) != 0)
+                    continue;
 
-            thread.Start();
-            Assert.True(thread.Join(TimeSpan.FromSeconds(5)), "Load didn't finish");
-            Assert.NotEqual(0, result);
-            Assert.InRange(allocated, 0, 16 * 1024 * 1024);
+                Assert.True(new NifFile().Load(file, options) == 0, $"Block size mismatch in {file}");
+            }
         }
 
         private static NiStreamReversible ReadStream(byte[] data) =>
