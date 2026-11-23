@@ -378,6 +378,24 @@ namespace NiflySharp.Stream
             }
         }
 
+        /// <summary>
+        /// Checks a ref count read from the file before refs are allocated for it.
+        /// Each ref is stored as a 4-byte block index, so a count that needs more bytes
+        /// than are left in the stream can't be valid.
+        /// </summary>
+        internal void CheckReadRefCount(int count)
+        {
+            if (CurrentMode != Mode.Read)
+                return;
+
+            if (count < 0 || count > NifConstants.ArraySizeLimit)
+                throw new System.IO.InvalidDataException("Ref array size is out of range!");
+
+            var baseStream = In.Reader.BaseStream;
+            if (baseStream.CanSeek && (long)count * 4 > baseStream.Length - baseStream.Position)
+                throw new System.IO.InvalidDataException("Ref array size exceeds the remaining data!");
+        }
+
         public void SetListSize<T>(ref T array, int size) where T : NiRefArray, new()
         {
             array ??= new T();

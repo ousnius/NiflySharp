@@ -173,7 +173,8 @@ namespace NiflySharp
         /// <returns>
         /// Result code:
         ///  0 = success
-        /// >0 = error
+        ///  3 = block size mismatch (only with <see cref="NifFileLoadOptions.CheckBlockSizes"/>)
+        /// >0 = other error
         /// </returns>
         public int Load(string fileName, NifFileLoadOptions options = null)
         {
@@ -196,7 +197,8 @@ namespace NiflySharp
         /// <returns>
         /// Result code:
         ///  0 = success
-        /// >0 = error
+        ///  3 = block size mismatch (only with <see cref="NifFileLoadOptions.CheckBlockSizes"/>)
+        /// >0 = other error
         /// </returns>
         public int Load(System.IO.Stream stream, NifFileLoadOptions options = null)
         {
@@ -295,6 +297,9 @@ namespace NiflySharp
 
                 if (blockStreamable != null)
                 {
+                    int expectedSize = options.CheckBlockSizes && stream.CanSeek ? Header.GetBlockSize(i) : -1;
+                    long blockStart = expectedSize >= 0 ? stream.Position : 0;
+
                     try
                     {
                         // Read the block
@@ -306,6 +311,13 @@ namespace NiflySharp
                         // Truncated or malformed block data
                         Clear();
                         return 1;
+                    }
+
+                    if (expectedSize >= 0 && stream.Position - blockStart != expectedSize)
+                    {
+                        // Block read a different number of bytes than the header says it has
+                        Clear();
+                        return 3;
                     }
 
                     block = blockStreamable as NiObject;

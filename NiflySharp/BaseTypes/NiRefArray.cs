@@ -13,6 +13,7 @@ namespace NiflySharp
 
 		public void SetListSize(NiStreamReversible stream, int size)
 		{
+			stream.CheckReadRefCount(size);
 			_listSizeStream = size;
 			Resize(_listSizeStream);
 		}
